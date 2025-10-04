@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+#instala o git
+sudo apt-get -y install git
+
 # Script: configura_git_ed25519.sh
 # Gera chave ed25519, configura git, adiciona inicialização do ssh-agent no ~/.bashrc e exibe a chave pública.
 # Uso: ./configura_git_ed25519.sh
