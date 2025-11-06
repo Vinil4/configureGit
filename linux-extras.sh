@@ -512,8 +512,15 @@ cd "$MAIN_DIR"
 # Define a fonte dos seus dotfiles do Vim
 VIM_CONFIG_SOURCE="$SCRIPT_DIR"
 
+# --- INÍCIO DA MODIFICAÇÃO ---
+# Garante que a pasta 'dotvim' exista no diretório do script
+# O '-p' evita erros caso a pasta já exista.
+echo "Verificando e criando $VIM_CONFIG_SOURCE/dotvim se necessário..."
+mkdir -p "$VIM_CONFIG_SOURCE/dotvim"
+# --- FIM DA MODIFICAÇÃO ---
+
 if [ ! -d "$VIM_CONFIG_SOURCE/dotvim" ] || [ ! -f "$VIM_CONFIG_SOURCE/dotvimrc" ]; then
-    echo "AVISO: 'dotvim' ou 'dotvimrc' não encontrados em $VIM_CONFIG_SOURCE."
+    echo "AVISO: 'dotvimrc' não encontrado em $VIM_CONFIG_SOURCE."
     echo "Pulando a configuração do Vim. O PlugInstall manual será necessário."
 else
     echo "Configurações do Vim encontradas em $VIM_CONFIG_SOURCE."
