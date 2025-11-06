@@ -21,6 +21,8 @@ echo "==> Atualizando repositórios APT..."
 sudo apt update
 
 echo "==> Instalando todas as dependências APT de uma vez..."
+# 'systemd' FOI REMOVIDO DESTA LISTA PARA EVITAR QUEBRA DE BOOT.
+# Dependências do VIM (python3-dev, ctags, clang-format, texlive) FORAM ADICIONADAS.
 sudo apt install -y \
     git \
     meson \
@@ -50,7 +52,6 @@ sudo apt install -y \
     thunar \
     rofi \
     compton \
-    systemd \
     i3lock \
     jq \
     xbindkeys \
@@ -82,10 +83,24 @@ sudo apt install -y \
     libgtk-3-dev \
     libayatana-appindicator3-dev \
     libcanberra-gtk3-dev \
-    gnome-shell-extension-appindicator
+    python3-dev \
+    universal-ctags \
+    clang-format \
+    texlive-extra-utils
 
 echo "==> Aplicando upgrade do sistema..."
 sudo apt upgrade -y
+
+# ================== INÍCIO DA CORREÇÃO DE BOOT ==================
+# Configura o lightdm como o gerenciador de login padrão para
+# evitar conflitos com gdm3 (Gnome) ou sddm (KDE) e garantir
+# que a tela de login gráfica suba corretamente.
+echo "==> Configurando lightdm como o gerenciador de login padrão..."
+sudo systemctl enable lightdm
+sudo systemctl set-default graphical.target
+echo "==> lightdm definido como padrão."
+# ================== FIM DA CORREÇÃO DE BOOT ==================
+
 
 # Entra no diretório principal
 cd "$MAIN_DIR"
@@ -118,12 +133,8 @@ else
 fi
 
 echo "Configurando i3blocks com autotools (configure/make)..."
-# Opcional, mas garante que os scripts de build estejam atualizados
 ./autogen.sh
-    
-# Configura com o prefixo /usr para instalar no lugar certo
 ./configure --prefix=/usr
-    
 make
 sudo make install
 cd "$MAIN_DIR"
@@ -131,8 +142,6 @@ cd "$MAIN_DIR"
 #==================================================
 # i3blocks-contrib
 #==================================================
-
-# Garante que o repositório exista
 if [ ! -d "$MAIN_DIR/i3blocks-contrib" ]; then
     echo "Clonando o repositório do i3blocks-contrib..."
     git clone https://github.com/vivien/i3blocks-contrib.git "$MAIN_DIR/i3blocks-contrib"
@@ -140,44 +149,31 @@ else
     echo "==> Repositório i3blocks-contrib já existe."
 fi
 
-# Entra no diretório
 echo "Entrando em $MAIN_DIR/i3blocks-contrib..."
 cd "$MAIN_DIR/i3blocks-contrib"
-
 echo "Atualizando repositório..."
 git pull
 
-# Criando diretório de configuração do i3blocks, se necessário
 if [ ! -d "$HOME/.config/i3blocks" ]; then
     echo "Diretório de configuração do i3blocks não existe. Criando..."
     mkdir -p "$HOME/.config/i3blocks"
 fi
 
-# --- INÍCIO DA CORREÇÃO ---
-# O i3blocks-contrib usa autotools, não Meson!
 echo "Configurando i3blocks-contrib com autotools (configure/make)..."
 ./configure
-
 echo "Compilando com make..."
 make
-
 echo "Instalando com make install..."
 sudo make install
-# --- FIM DA CORREÇÃO ---
 
-# Limpeza
 git reset --hard
 git clean -fd
-
-# Volta para o diretório principal
 echo "Retornando para $MAIN_DIR"
 cd "$MAIN_DIR"
 
 #==================================================
 # i3-layout-manager
 #==================================================
-
-# Garante que o repositório exista
 if [ ! -d "$MAIN_DIR/i3-layout-manager" ]; then
     echo "Clonando o repositório do i3-layout-manager..."
     git clone https://github.com/klaxalk/i3-layout-manager.git "$MAIN_DIR/i3-layout-manager"
@@ -185,28 +181,17 @@ else
     echo "==> Repositório i3-layout-manager já existe."
 fi
 
-# Entra no diretório
 echo "Entrando em $MAIN_DIR/i3-layout-manager..."
 cd "$MAIN_DIR/i3-layout-manager"
-
 echo "Atualizando repositório..."
 git pull
-
-# --- INÍCIO DA CORREÇÃO ---
-# Este script é um executável Bash, não um pacote Python.
-# As dependências dele (jq, rofi, vim, xdotool) já
-# foram instaladas no bloco principal de 'apt install' no topo do script.
 
 echo "Instalando o script 'layout_manager.sh' em /usr/local/bin..."
 sudo cp layout_manager.sh /usr/local/bin/i3-layout-manager
 sudo chmod +x /usr/local/bin/i3-layout-manager
-# --- FIM DA CORREÇÃO ---
 
-# Limpeza
 git reset --hard
 git clean -fd
-
-# Volta para o diretório principal
 echo "Retornando para $MAIN_DIR"
 cd "$MAIN_DIR"
 
@@ -221,25 +206,16 @@ else
     cd "$MAIN_DIR/zsh-syntax-highlighting" && git pull
 fi
 
-# Define o diretório de plugins do ZSH (padrão oh-my-zsh)
 ZSH_CUSTOM=${ZSH_CUSTOM:-"$HOME/.oh-my-zsh/custom"}/plugins
 if [ ! -d "$ZSH_CUSTOM" ]; then
     mkdir -p "$ZSH_CUSTOM"
 fi
 
-# Linkando o plugin
 ln -sf "$MAIN_DIR/zsh-syntax-highlighting" "$ZSH_CUSTOM/zsh-syntax-highlighting"
 
-# Adicionando o plugin ao arquivo ~/.zshrc
-if [ -f "$HOME/.zshrc" ] && ! grep -q 'zsh-syntax-highlighting' ~/.zshrc; then
-    echo "Adicionando o plugin zsh-syntax-highlighting ao arquivo ~/.zshrc..."
-    echo "plugins=( \$(plugins) zsh-syntax-highlighting )" >> ~/.zshrc
-fi
+echo "==> AVISO: zsh-syntax-highlighting está linkado."
+echo "==> Por favor, adicione 'zsh-syntax-highlighting' à sua lista 'plugins=(...)' no seu arquivo ~/.zshrc manualmente."
 
-# AVISO: source só funcionará para este script. O usuário precisa recarregar o zsh manualmente.
-echo "==> AVISO: 'source ~/.zshrc' pode ser necessário no seu terminal."
-
-# Limpeza
 git reset --hard
 git clean -fd
 cd "$MAIN_DIR"
@@ -260,7 +236,6 @@ fi
 make
 sudo make install
 
-# Limpeza
 git reset --hard
 git clean -fd
 cd "$MAIN_DIR"
@@ -276,16 +251,10 @@ else
     cd "$MAIN_DIR/tmuxinator" && git pull
 fi
 
-# --- INÍCIO DA CORREÇÃO ---
-# Instalar dependências do Ruby (com sudo)
 sudo gem install bundler
 sudo bundle install
-
-# Instalar o tmuxinator globalmente (com sudo)
 sudo gem install tmuxinator
-# --- FIM DA CORREÇÃO ---
 
-# Limpeza
 git reset --hard
 git clean -fd
 cd "$MAIN_DIR"
@@ -301,18 +270,12 @@ else
     cd "$MAIN_DIR/fzf" && git pull
 fi
 
-# --- INÍCIO DA CORREÇÃO ---
 echo "Instalando o fzf (não-interativo)..."
-# Usa --all para uma instalação não-interativa completa
 ./install --all
 
-# O script acima instala em $HOME/.fzf/bin
-# Vamos criar um link simbólico para que o sistema o encontre
 echo "Criando link simbólico para fzf em /usr/local/bin..."
 sudo ln -sf "$HOME/.fzf/bin/fzf" /usr/local/bin/fzf
-# --- FIM DA CORREÇÃO ---
 
-# Verificando a instalação
 if command -v fzf > /dev/null; then
     echo "fzf instalado com sucesso!"
 else
@@ -356,7 +319,10 @@ else
 fi
 
 echo "Adicionando os scripts do pandoc-goodies ao PATH (via .bashrc)..."
-echo 'export PATH="$HOME/git/submodules/pandoc-goodies/scripts:$PATH"' >> ~/.bashrc
+BASHRC_LINE='export PATH="$HOME/git/submodules/pandoc-goodies/scripts:$PATH"'
+if ! grep -qF "$BASHRC_LINE" ~/.bashrc; then
+    echo "$BASHRC_LINE" >> ~/.bashrc
+fi
 
 echo "==> AVISO: 'source ~/.bashrc' será necessário para usar o pandoc-goodies no seu terminal."
 cd "$MAIN_DIR"
@@ -364,8 +330,6 @@ cd "$MAIN_DIR"
 #==================================================
 # brightnessctl
 #==================================================
-
-# Garante que o repositório exista
 if [ ! -d "$MAIN_DIR/brightnessctl" ]; then
     echo "Clonando o repositório brightnessctl..."
     git clone https://github.com/Hummer12007/brightnessctl.git "$MAIN_DIR/brightnessctl"
@@ -373,17 +337,12 @@ else
     echo "==> Repositório brightnessctl já existe."
 fi
 
-# Entra no diretório
 echo "Entrando em $MAIN_DIR/brightnessctl..."
 cd "$MAIN_DIR/brightnessctl"
-
 echo "Atualizando repositório..."
 git pull
 
-# --- INÍCIO DA CORREÇÃO ---
-# Este projeto usa autotools (configure/make), NÃO Meson.
 echo "Configurando com autotools..."
-# O autogen.sh pode ser necessário se o 'configure' não existir
 if [ ! -f "configure" ]; then
     ./autogen.sh
 fi
@@ -391,19 +350,14 @@ fi
 
 echo "Compilando com make..."
 make
-
 echo "Instalando com make install..."
 sudo make install
-# --- FIM DA CORREÇÃO ---
 
-# Verificando a instalação
 if command -v brightnessctl > /dev/null; then
     echo "brightnessctl instalado com sucesso!"
 else
     echo "Erro na instalação do brightnessctl."
 fi
-
-# Volta para o diretório principal
 echo "Retornando para $MAIN_DIR"
 cd "$MAIN_DIR"
 
@@ -445,17 +399,14 @@ else
     export GOPATH=$HOME/go
     export PATH=$PATH:$GOPATH/bin
 
-    # Garante que o repositório exista com a URL correta
     if [ ! -d "$MAIN_DIR/git-sync" ]; then
         echo "Clonando git-sync..."
         git clone https://github.com/AkashRajpurohit/git-sync.git "$MAIN_DIR/git-sync"
     fi
     
-    # Entra no diretório
     cd "$MAIN_DIR/git-sync"
     git pull
     
-    # Compila e instala
     echo "Compilando git-sync..."
     go build -o git-sync
     sudo mv git-sync /usr/local/bin/
@@ -477,24 +428,18 @@ if command -v xkblayout-state >/dev/null 2>&1; then
 else
     echo "O xkblayout-state não foi encontrado. Instalando..."
 
-    # Garante que o repositório exista com a URL correta
     if [ ! -d "$MAIN_DIR/xkblayout-state" ]; then
         echo "Clonando xkblayout-state (fork nonpop)..."
-        # --- A URL CORRETA ESTÁ AQUI ---
         git clone https://github.com/nonpop/xkblayout-state.git "$MAIN_DIR/xkblayout-state"
     fi
     
-    # Entra no diretório
     echo "Entrando em $MAIN_DIR/xkblayout-state..."
     cd "$MAIN_DIR/xkblayout-state"
     git pull
     
-    # Compila e instala (Este projeto usa 'make')
     echo "Compilando xkblayout-state..."
     make
     sudo make install
-
-    # Força o shell a re-escanear o PATH
     hash -r
 
     if command -v xkblayout-state >/dev/null 2>&1; then
@@ -510,30 +455,19 @@ cd "$MAIN_DIR"
 #==================================================
 echo "Verificando indicator-sound-switcher..."
 
-# Garante que o repositório exista
 if [ ! -d "$MAIN_DIR/indicator-sound-switcher" ]; then
     echo "Clonando indicator-sound-switcher (fork 'yktoo')..."
     git clone https://github.com/yktoo/indicator-sound-switcher.git "$MAIN_DIR/indicator-sound-switcher"
 fi
 
-# Entra no diretório
 echo "Entrando em $MAIN_DIR/indicator-sound-switcher..."
 cd "$MAIN_DIR/indicator-sound-switcher"
 git pull
-
-# --- INÍCIO DA CORREÇÃO ---
-# Limpa o diretório 'build' antigo da tentativa falhada de 'cmake'
 echo "Limpando diretório 'build' antigo..."
 sudo rm -rf build
 
-# Instala com pip. Agora deve funcionar,
-# pois o 'gettext' (instalado via apt) está disponível
-# para o setup.py construir os ficheiros .mo
 echo "Instalando com pip (setup.py)..."
 sudo pip3 install . --break-system-packages
-# --- FIM DA CORREÇÃO ---
-
-# Força o shell a re-escanear o PATH
 hash -r
 
 if command -v indicator-sound-switcher >/dev/null 2>&1; then
@@ -547,51 +481,36 @@ cd "$MAIN_DIR"
 #==================================================
 # Keychron K2 Function Keys
 #==================================================
-
 echo "Configurando as teclas de função do Keychron (método hid_apple)..."
 
-# --- INÍCIO DA CORREÇÃO ---
-# Tenta carregar o módulo 'hid_apple', caso ele não esteja ativo.
-# O -q (quiet) suprime erros caso o módulo não exista.
 echo "Tentando carregar o módulo 'hid_apple'..."
 sudo modprobe -q hid_apple
 
-# Define o arquivo de parâmetro
 FNMODE_FILE="/sys/module/hid_apple/parameters/fnmode"
 
-# Verifica se o arquivo de controle do 'hid_apple' REALMENTE existe
 if [ -f "$FNMODE_FILE" ]; then
     echo "Módulo 'hid_apple' encontrado. Aplicando fnmode=2..."
-    
-    # 2 = Teclas F1-F12 são o padrão.
     echo 2 | sudo tee "$FNMODE_FILE"
-
-    # Torna a mudança permanente
     echo "Tornando a configuração do Keychron permanente..."
     echo "options hid_apple fnmode=2" | sudo tee /etc/modprobe.d/hid_apple.conf
-
     echo "Configuração do Keychron K2 (hid_apple) aplicada com sucesso!"
-    echo "AVISO: Você precisará rodar 'sudo update-initramfs -u' ou reiniciar o PC."
-
+    echo "AVISO: Pode ser necessário rodar 'sudo update-initramfs -u' ou reiniciar."
 else
     echo "AVISO: O arquivo '$FNMODE_FILE' não foi encontrado."
     echo "O seu kernel pode já usar um driver dedicado (hid_keychron)."
     echo "Esta etapa foi pulada, pois provavelmente não é necessária."
 fi
-# --- FIM DA CORREÇÃO ---
 
 cd "$MAIN_DIR"
 
 #==================================================
 # Configuração do Vim & vim-plug
 #==================================================
-
-# --- INÍCIO DA CORREÇÃO ---
 # Esta secção usa SCRIPT_DIR (definido no topo do script)
 # para encontrar 'dotvim' e 'dotvimrc' ao lado do script .sh
 
 # Define a fonte dos seus dotfiles do Vim
-VIM_CONFIG_SOURCE="$SCRIPT_DIR" 
+VIM_CONFIG_SOURCE="$SCRIPT_DIR"
 
 if [ ! -d "$VIM_CONFIG_SOURCE/dotvim" ] || [ ! -f "$VIM_CONFIG_SOURCE/dotvimrc" ]; then
     echo "AVISO: 'dotvim' ou 'dotvimrc' não encontrados em $VIM_CONFIG_SOURCE."
@@ -619,18 +538,15 @@ else
     fi
 
     # 4. Agora, rodar o PlugInstall
+    # (O vim-plug irá ler o seu .vimrc e instalar os plugins em '~/git/submodules')
     echo "Instalando plugins definidos no seu .vimrc..."
     vim +PlugInstall +qall
     echo "Instalação de plugins do Vim concluída."
 fi
-# --- FIM DA CORREÇÃO ---
-
 
 #==================================================
 # Configuração de Links Simbólicos (Dotfiles)
 #==================================================
-
-# --- INÍCIO DA CORREÇÃO ---
 # Esta secção usa SCRIPT_DIR para encontrar 'doti3' ao lado do script .sh
 I3_CONFIG_SOURCE="$SCRIPT_DIR/doti3"
 
@@ -643,7 +559,6 @@ if [ -d "$I3_CONFIG_SOURCE" ]; then
         echo "Linkado: $I3_CONFIG_SOURCE -> ~/.i3"
     fi
 
-    # Garante que o diretório ~/.i3 exista para o cp
     mkdir -p "$HOME/.i3"
 
     echo "Copiando os arquivos de configuração do i3 (de doti3)..."
@@ -654,8 +569,6 @@ if [ -d "$I3_CONFIG_SOURCE" ]; then
         cp "$I3_CONFIG_SOURCE/i3blocks.conf_git" "$HOME/.i3/i3blocks.conf"
     fi
     
-    # Confere os scripts de i3blocks DENTRO de $MAIN_DIR
-    # (como você confirmou)
     echo "Copiando scripts do i3blocks (de $MAIN_DIR)..."
     if [ -f "$MAIN_DIR/i3blocks/wifi_git" ]; then
         cp "$MAIN_DIR/i3blocks/wifi_git" "$MAIN_DIR/i3blocks/wifi"
@@ -667,19 +580,20 @@ if [ -d "$I3_CONFIG_SOURCE" ]; then
 else
     echo "AVISO: Diretório 'doti3' não encontrado em $SCRIPT_DIR. Pulando configs do i3."
 fi
-# --- FIM DA CORREÇÃO ---
 
 # Verificação final do lightdm
 if ! dpkg -l | grep -q lightdm; then
     echo "AVISO: lightdm não foi instalado corretamente!"
 else
-    echo "lightdm instalado com sucesso!"
+    echo "lightdm instalado e configurado com sucesso!"
 fi
 
 echo "=============================================="
 echo "Instalação e configuração concluídas!"
 echo "AVISOS IMPORTANTES:"
-echo "1. Configure manualmente seus plugins do Vim (veja aviso no script)."
-echo "2. Certifique-se que seu repositório 'doti3' está em $MAIN_DIR."
+echo "1. Os plugins do Vim (YCM, NERDTree, etc) foram instalados em $MAIN_DIR."
+echo "2. Suas configs 'doti3' foram linkadas a partir de $SCRIPT_DIR."
 echo "3. Reinicie seu shell (ou 'source ~/.bashrc' / 'source ~/.zshrc') para aplicar mudanças de PATH."
+echo "4. Você precisará adicionar 'zsh-syntax-highlighting' manualmente ao seu ~/.zshrc."
+echo "5. REINICIE O COMPUTADOR para que o 'lightdm' e as mudanças do 'hid_apple' tenham efeito."
 echo "=============================================="

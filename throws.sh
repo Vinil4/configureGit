@@ -2,7 +2,7 @@
 
 # Este script aplica 4 personalizações:
 # 1. Instala dependências e configura o clipboard do sistema no Vim
-# 2. Altera o prefixo do Tmux para Ctrl+A
+# 2. Altera o prefixo do Tmux para Ctrl+A e adiciona o modo Vim
 # 3. Cria um alias 'ra' para 'ranger'
 # 4. Inicia o Tmux automaticamente no login do shell
 
@@ -33,11 +33,12 @@ echo ""
 
 # ----------------------------------------------------
 
-echo "==> Configurando o Tmux (prefixo Ctrl+A)..."
+# --- INÍCIO DA MODIFICAÇÃO ---
+echo "==> Configurando o Tmux (prefixo Ctrl+A e modo Vim)..."
 # Garante que o arquivo exista
 touch ~/.tmux.conf
 
-# Adiciona as linhas apenas se elas ainda não existirem
+# 1. Configuração do Prefixo (Original)
 if ! grep -q "unbind C-b" ~/.tmux.conf; then
     echo 'unbind C-b' >> ~/.tmux.conf
 fi
@@ -47,8 +48,53 @@ fi
 if ! grep -q "bind C-a send-prefix" ~/.tmux.conf; then
     echo 'bind C-a send-prefix' >> ~/.tmux.conf
 fi
-echo "Configuração do Tmux concluída."
+
+# 2. Configurações de "Vim Mode" (Novo)
+# Adiciona um comentário de separação se ele não existir
+if ! grep -q "# Configurações de \"Vim Mode\"" ~/.tmux.conf; then
+    echo "" >> ~/.tmux.conf
+    echo "# Configurações de \"Vim Mode\"" >> ~/.tmux.conf
+fi
+
+# Ativa o "modo visual" (copy mode) com teclas do Vi
+# Use Ctrl+A [ para entrar, 'v' para selecionar, 'y' para copiar
+if ! grep -q "set-window-option -g mode-keys vi" ~/.tmux.conf; then
+    echo "set-window-option -g mode-keys vi" >> ~/.tmux.conf
+fi
+
+# Navegação entre painéis com h, j, k, l (estilo Vim)
+# Use Ctrl+A h, Ctrl+A j, Ctrl+A k, Ctrl+A l
+if ! grep -q "bind h select-pane -L" ~/.tmux.conf; then
+    echo "bind h select-pane -L" >> ~/.tmux.conf
+fi
+if ! grep -q "bind j select-pane -D" ~/.tmux.conf; then
+    echo "bind j select-pane -D" >> ~/.tmux.conf
+fi
+if ! grep -q "bind k select-pane -U" ~/.tmux.conf; then
+    echo "bind k select-pane -U" >> ~/.tmux.conf
+fi
+if ! grep -q "bind l select-pane -R" ~/.tmux.conf; then
+    echo "bind l select-pane -R" >> ~/.tmux.conf
+fi
+
+# Redimensionar painéis com Shift + h, j, k, l
+# O '-r' permite repetir (ex: segurar Ctrl+A e apertar H várias vezes)
+if ! grep -q "bind -r H resize-pane -L 5" ~/.tmux.conf; then
+    echo "bind -r H resize-pane -L 5" >> ~/.tmux.conf
+fi
+if ! grep -q "bind -r J resize-pane -D 5" ~/.tmux.conf; then
+    echo "bind -r J resize-pane -D 5" >> ~/.tmux.conf
+fi
+if ! grep -q "bind -r K resize-pane -U 5" ~/.tmux.conf; then
+    echo "bind -r K resize-pane -U 5" >> ~/.tmux.conf
+fi
+if ! grep -q "bind -r L resize-pane -R 5" ~/.tmux.conf; then
+    echo "bind -r L resize-pane -R 5" >> ~/.tmux.conf
+fi
+
+echo "Configuração do Tmux (com modo Vim) concluída."
 echo ""
+# --- FIM DA MODIFICAÇÃO ---
 
 # ----------------------------------------------------
 
@@ -100,4 +146,4 @@ echo "Para aplicar as mudanças, reinicie o seu terminal ou execute:"
 echo "  source ~/.bashrc"
 echo "  source ~/.zshrc"
 echo ""
-echo "O atalho Ctrl+A do Tmux e o clipboard do Vim funcionarão após o Tmux e o Vim serem reiniciados."
+echo "Os atalhos do Tmux e o clipboard do Vim funcionarão após o Tmux e o Vim serem reiniciados."
