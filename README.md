@@ -6,7 +6,7 @@ automatiza a configuracao do git no pc.
 mkdir -p ~/git &&
 cd ~/git &&
 git clone https://github.com/Vinil4/configureGit.git &&
-cd ~/git/configureGit &&
+cd ~/git/configureGit-main &&
 chmod +x config.sh &&
 ./config.sh
 ```
@@ -16,7 +16,7 @@ chmod +x config.sh &&
 mkdir -p ~/git &&
 cd ~/git &&
 git clone https://github.com/Vinil4/configureGit.git &&
-cd ~/git/configureGit &&
+cd ~/git/configureGit-main &&
 chmod +x config.sh &&
 chmod +x linux-extras.sh &&
 ./config.sh &&
