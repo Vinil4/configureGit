@@ -71,6 +71,7 @@ sudo apt install -y \
     libxkbcommon-dev \
     libxkbcommon-x11-dev \
     libxcb-shape0-dev \
+    libxcb-xrm-dev \
     xcb-proto \
     libglib2.0-dev \
     libevent-dev \
@@ -86,7 +87,8 @@ sudo apt install -y \
     python3-dev \
     universal-ctags \
     clang-format \
-    texlive-extra-utils
+    texlive-extra-utils \
+    npm 
 
 echo "==> Aplicando upgrade do sistema..."
 sudo apt upgrade -y
