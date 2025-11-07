@@ -52,6 +52,7 @@ sudo apt install -y \
     thunar \
     rofi \
     compton \
+    xfce4-terminal \
     i3lock \
     jq \
     xbindkeys \
