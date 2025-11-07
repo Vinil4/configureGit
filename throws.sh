@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Este script aplica 4 personalizações:
+# Este script aplica 5 personalizações:
 # 1. Instala dependências e configura o clipboard do sistema no Vim
-# 2. Altera o prefixo do Tmux para Ctrl+A e adiciona o modo Vim
+# 2. Altera o prefixo do Tmux para Ctrl+A, adiciona o modo Vim e atalhos de 'kill'
 # 3. Cria um alias 'ra' para 'ranger'
 # 4. Inicia o Tmux automaticamente no login do shell
 # 5. Configura o terminal URxvt (rxvt-unicode) com tema e fonte
@@ -31,6 +31,7 @@ echo ""
 
 echo "==> Configurando o Tmux (prefixo Ctrl+A e modo Vim)..."
 touch ~/.tmux.conf
+# Prefixo
 if ! grep -q "unbind C-b" ~/.tmux.conf; then
     echo 'unbind C-b' >> ~/.tmux.conf
 fi
@@ -40,6 +41,8 @@ fi
 if ! grep -q "bind C-a send-prefix" ~/.tmux.conf; then
     echo 'bind C-a send-prefix' >> ~/.tmux.conf
 fi
+
+# Modo Vim e Navegação
 if ! grep -q "# Configurações de \"Vim Mode\"" ~/.tmux.conf; then
     echo "" >> ~/.tmux.conf
     echo "# Configurações de \"Vim Mode\"" >> ~/.tmux.conf
@@ -59,6 +62,8 @@ fi
 if ! grep -q "bind l select-pane -R" ~/.tmux.conf; then
     echo "bind l select-pane -R" >> ~/.tmux.conf
 fi
+
+# Redimensionar painéis
 if ! grep -q "bind -r H resize-pane -L 5" ~/.tmux.conf; then
     echo "bind -r H resize-pane -L 5" >> ~/.tmux.conf
 fi
@@ -71,7 +76,21 @@ fi
 if ! grep -q "bind -r L resize-pane -R 5" ~/.tmux.conf; then
     echo "bind -r L resize-pane -R 5" >> ~/.tmux.conf
 fi
-echo "Configuração do Tmux (com modo Vim) concluída."
+
+# --- ATALHOS PARA MATAR (ADICIONADO) ---
+if ! grep -q "bind q kill-pane" ~/.tmux.conf; then
+    echo "" >> ~/.tmux.conf
+    echo "# Atalho para matar o painel atual (q)" >> ~/.tmux.conf
+    echo "bind q kill-pane" >> ~/.tmux.conf
+fi
+
+if ! grep -q "bind Q confirm-before" ~/.tmux.conf; then
+    echo "" >> ~/.tmux.conf
+    echo "# Atalho para matar o servidor (Shift+Q, com confirmação)" >> ~/.tmux.conf
+    echo 'bind Q confirm-before -p "Matar todo o servidor tmux? (y/n)" kill-server' >> ~/.tmux.conf
+fi
+
+echo "Configuração do Tmux (com modo Vim e atalhos de 'kill') concluída."
 echo ""
 
 # ----------------------------------------------------
@@ -166,8 +185,12 @@ echo "$XRESOURCES_CONTENT" > "$HOME/.Xresources"
 echo "Arquivo ~/.Xresources criado com o tema."
 
 # Tenta carregar as configurações imediatamente
-xrdb -merge ~/.Xresources
-echo "Configurações do URxvt carregadas."
+if command -v xrdb > /dev/null; then
+    xrdb -merge ~/.Xresources
+    echo "Configurações do URxvt carregadas."
+else
+    echo "Comando 'xrdb' não encontrado. Pule a recarga do .Xresources."
+fi
 
 # ----------------------------------------------------
 
@@ -176,6 +199,7 @@ echo "Concluído!"
 echo ""
 echo "Para aplicar as mudanças do shell (alias, tmux), reinicie o seu terminal ou execute:"
 echo "  source ~/.bashrc"
+echo "  ou"
 echo "  source ~/.zshrc"
 echo ""
 echo "As novas configurações do URxvt (cores/fonte) serão aplicadas na próxima vez que você abrir um novo terminal."

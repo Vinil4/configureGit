@@ -612,7 +612,49 @@ else
     echo "AVISO: Diretório 'doti3' não encontrado em $SCRIPT_DIR. Pulando configs do i3."
 fi
 
+#==================================================
+# Instalação do ROS 2 (Jazzy)
+#==================================================
+echo "==> Iniciando a instalação do ROS 2 Jazzy..."
+
+echo "==> 1. Configurando o 'locale' (UTF-8)..."
+# O ROS 2 exige que o sistema suporte UTF-8
+sudo apt-get update
+sudo apt-get install -y locales
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8 # Para a sessão de script atual
+echo "Locale configurado."
+
+echo "==> 2. Adicionando repositórios (universe e ROS 2)..."
+# Instala pré-requisitos para gerenciar repositórios
+sudo apt-get install -y software-properties-common curl
+    
+# Adiciona o repositório 'universe' do Ubuntu (necessário para o ROS)
+sudo add-apt-repository -y universe
+    
+# Baixa a chave de segurança do ROS
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+    
+# Adiciona a fonte do ROS 2 à lista do apt
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+echo "Repositório ROS 2 adicionado."
+    
+echo "==> 3. Instalando pacotes do ROS 2..."
+sudo apt-get update # Atualiza após adicionar os novos repositórios
+sudo apt-get install -y \
+    ros-jazzy-desktop-full \
+    ros-dev-tools
+
+echo "==> Instalação do ROS 2 Jazzy concluída!"
+echo "==> AVISO IMPORTANTE: Adicione o seguinte ao seu ~/.bashrc ou ~/.zshrc:"
+echo "==>   source /opt/ros/jazzy/setup.bash"
+echo "=================================================="
+
+#===================================================
 # Verificação final do lightdm
+# ==================================================
+
 if ! dpkg -l | grep -q lightdm; then
     echo "AVISO: lightdm não foi instalado corretamente!"
 else
