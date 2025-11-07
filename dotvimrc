@@ -131,3 +131,6 @@ let NERDTreeShowHidden=1
 autocmd! BufWritePost,BufRead * Neomake
 
 " Adicione mais configurações pessoais aqui...
+
+" Linka o Vim com o clipboard do sistema (Ctrl+C/Ctrl+V)
+set clipboard=unnamedplus
