@@ -5,10 +5,9 @@
 # 2. Altera o prefixo do Tmux para Ctrl+A e adiciona o modo Vim
 # 3. Cria um alias 'ra' para 'ranger'
 # 4. Inicia o Tmux automaticamente no login do shell
+# 5. Configura o terminal URxvt (rxvt-unicode) com tema e fonte
 
 echo "==> Instalando dependências para o clipboard (vim-gtk3 e xclip)..."
-# O vim-gtk3 (ou vim-g/vim-x11) é necessário para ter a opção +clipboard
-# O xclip é a ferramenta que o vim usa para aceder ao clipboard
 sudo apt update
 sudo apt install -y vim-gtk3 xclip
 echo ""
@@ -16,11 +15,8 @@ echo ""
 echo "==> Configurando o Vim para usar a área de transferência do sistema..."
 VIMRC_FILE="$HOME/.vimrc"
 CLIPBOARD_LINE="set clipboard=unnamedplus"
-
-# Garante que o .vimrc exista
 touch "$VIMRC_FILE"
 
-# Adiciona a linha de configuração do clipboard se ela não existir
 if ! grep -qF "$CLIPBOARD_LINE" "$VIMRC_FILE"; then
     echo "" >> "$VIMRC_FILE"
     echo "\" Linka o Vim com o clipboard do sistema (Ctrl+C/Ctrl+V)" >> "$VIMRC_FILE"
@@ -33,12 +29,8 @@ echo ""
 
 # ----------------------------------------------------
 
-# --- INÍCIO DA MODIFICAÇÃO ---
 echo "==> Configurando o Tmux (prefixo Ctrl+A e modo Vim)..."
-# Garante que o arquivo exista
 touch ~/.tmux.conf
-
-# 1. Configuração do Prefixo (Original)
 if ! grep -q "unbind C-b" ~/.tmux.conf; then
     echo 'unbind C-b' >> ~/.tmux.conf
 fi
@@ -48,22 +40,13 @@ fi
 if ! grep -q "bind C-a send-prefix" ~/.tmux.conf; then
     echo 'bind C-a send-prefix' >> ~/.tmux.conf
 fi
-
-# 2. Configurações de "Vim Mode" (Novo)
-# Adiciona um comentário de separação se ele não existir
 if ! grep -q "# Configurações de \"Vim Mode\"" ~/.tmux.conf; then
     echo "" >> ~/.tmux.conf
     echo "# Configurações de \"Vim Mode\"" >> ~/.tmux.conf
 fi
-
-# Ativa o "modo visual" (copy mode) com teclas do Vi
-# Use Ctrl+A [ para entrar, 'v' para selecionar, 'y' para copiar
 if ! grep -q "set-window-option -g mode-keys vi" ~/.tmux.conf; then
     echo "set-window-option -g mode-keys vi" >> ~/.tmux.conf
 fi
-
-# Navegação entre painéis com h, j, k, l (estilo Vim)
-# Use Ctrl+A h, Ctrl+A j, Ctrl+A k, Ctrl+A l
 if ! grep -q "bind h select-pane -L" ~/.tmux.conf; then
     echo "bind h select-pane -L" >> ~/.tmux.conf
 fi
@@ -76,9 +59,6 @@ fi
 if ! grep -q "bind l select-pane -R" ~/.tmux.conf; then
     echo "bind l select-pane -R" >> ~/.tmux.conf
 fi
-
-# Redimensionar painéis com Shift + h, j, k, l
-# O '-r' permite repetir (ex: segurar Ctrl+A e apertar H várias vezes)
 if ! grep -q "bind -r H resize-pane -L 5" ~/.tmux.conf; then
     echo "bind -r H resize-pane -L 5" >> ~/.tmux.conf
 fi
@@ -91,16 +71,12 @@ fi
 if ! grep -q "bind -r L resize-pane -R 5" ~/.tmux.conf; then
     echo "bind -r L resize-pane -R 5" >> ~/.tmux.conf
 fi
-
 echo "Configuração do Tmux (com modo Vim) concluída."
 echo ""
-# --- FIM DA MODIFICAÇÃO ---
 
 # ----------------------------------------------------
 
 echo "==> Configurando o Shell (alias 'ra' e auto-start do Tmux)..."
-
-# Define o bloco de texto que queremos adicionar.
 CONFIG_BLOCK=$(cat << 'EOT'
 
 # ==================================
@@ -119,31 +95,87 @@ fi
 EOT
 )
 
+# Aplicar ao .bashrc
+if [ -f "$HOME/.bashrc" ]; then
+    if ! grep -q 'alias ra="ranger"' ~/.bashrc; then
+        echo "$CONFIG_BLOCK" >> ~/.bashrc
+        echo "Configuração aplicada ao ~/.bashrc"
+    else
+        echo "Configuração já existe no ~/.bashrc (pulado)"
+    fi
+fi
+
+# Aplicar ao .zshrc
+if [ -f "$HOME/.zshrc" ]; then
+    if ! grep -q 'alias ra="ranger"' ~/.zshrc; then
+        echo "$CONFIG_BLOCK" >> ~/.zshrc
+        echo "Configuração aplicada ao ~/.zshrc"
+    else
+        echo "Configuração já existe no ~/.zshrc (pulado)"
+    fi
+fi
+
 # ----------------------------------------------------
 
-# Aplicar ao .bashrc (para o Bash)
-if ! grep -q 'alias ra="ranger"' ~/.bashrc; then
-    echo "$CONFIG_BLOCK" >> ~/.bashrc
-    echo "Configuração aplicada ao ~/.bashrc"
-else
-    echo "Configuração já existe no ~/.bashrc (pulado)"
-fi
+echo "==> Configurando o URxvt (Terminal)..."
+# CORRIGIDO: Removemos as configurações 'perl' e 'keysym'
+# que não funcionam na sua instalação.
+# O clipboard agora deve ser usado com Seleção (copiar) e Botão do Meio/Shift+Insert (colar).
+XRESOURCES_CONTENT=$(cat << 'EOT'
+! URxvt Configurações - Tema Solarized Dark
 
-# Aplicar ao .zshrc (para o Zsh)
-if ! grep -q 'alias ra="ranger"' ~/.zshrc; then
-    echo "$CONFIG_BLOCK" >> ~/.zshrc
-    echo "Configuração aplicada ao ~/.zshrc"
-else
-    echo "Configuração já existe no ~/.zshrc (pulado)"
-fi
+! === Fonte ===
+URxvt.font:             xft:DejaVu Sans Mono:size=12
+URxvt.boldFont:         xft:DejaVu Sans Mono:bold:size=12
+
+! === Cores ===
+URxvt.background:       #002b36
+URxvt.foreground:       #839496
+URxvt.cursorColor:      #93a1a1
+URxvt.color0:           #073642
+URxvt.color8:           #002b36
+URxvt.color1:           #dc322f
+URxvt.color9:           #cb4b16
+URxvt.color2:           #859900
+URxvt.color10:          #586e75
+URxvt.color3:           #b58900
+URxvt.color11:          #657b83
+URxvt.color4:           #268bd2
+URxvt.color12:          #839496
+URxvt.color5:           #d33682
+URxvt.color13:          #6c71c4
+URxvt.color6:           #2aa198
+URxvt.color14:          #93a1a1
+URxvt.color7:           #eee8d5
+URxvt.color1As5:          #fdf6e3
+
+! === Outras Configurações ===
+URxvt.scrollBar: false
+URxvt.saveLines: 8192
+URxvt.internalBorder: 5
+URxvt.letterSpace: -1
+
+! Desabilita o modo ISO 14755 (que usa Ctrl+Shift)
+URxvt.iso14755: false
+URxvt.iso14755_52: false
+EOT
+)
+
+# Escreve o conteúdo no arquivo .Xresources
+echo "$XRESOURCES_CONTENT" > "$HOME/.Xresources"
+echo "Arquivo ~/.Xresources criado com o tema."
+
+# Tenta carregar as configurações imediatamente
+xrdb -merge ~/.Xresources
+echo "Configurações do URxvt carregadas."
 
 # ----------------------------------------------------
 
 echo ""
 echo "Concluído!"
 echo ""
-echo "Para aplicar as mudanças, reinicie o seu terminal ou execute:"
+echo "Para aplicar as mudanças do shell (alias, tmux), reinicie o seu terminal ou execute:"
 echo "  source ~/.bashrc"
 echo "  source ~/.zshrc"
 echo ""
-echo "Os atalhos do Tmux e o clipboard do Vim funcionarão após o Tmux e o Vim serem reiniciados."
+echo "As novas configurações do URxvt (cores/fonte) serão aplicadas na próxima vez que você abrir um novo terminal."

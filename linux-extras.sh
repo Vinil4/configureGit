@@ -21,8 +21,7 @@ echo "==> Atualizando repositórios APT..."
 sudo apt update
 
 echo "==> Instalando todas as dependências APT de uma vez..."
-# 'systemd' FOI REMOVIDO DESTA LISTA PARA EVITAR QUEBRA DE BOOT.
-# Dependências do VIM (python3-dev, ctags, clang-format, texlive) FORAM ADICIONADAS.
+# Instala rxvt-unicode (para urxvt) e remove xfce4-terminal
 sudo apt install -y \
     git \
     meson \
@@ -52,7 +51,7 @@ sudo apt install -y \
     thunar \
     rofi \
     compton \
-    xfce4-terminal \
+    rxvt-unicode \
     i3lock \
     jq \
     xbindkeys \
@@ -89,20 +88,19 @@ sudo apt install -y \
     universal-ctags \
     clang-format \
     texlive-extra-utils \
-    npm 
+    npm
 
 echo "==> Aplicando upgrade do sistema..."
 sudo apt upgrade -y
 
-# ================== INÍCIO DA CORREÇÃO DE BOOT ==================
-# Configura o lightdm como o gerenciador de login padrão para
-# evitar conflitos com gdm3 (Gnome) ou sddm (KDE) e garantir
-# que a tela de login gráfica suba corretamente.
+# ==================
+# CONFIGURAÇÃO PÓS-INSTALAÇÃO
+# ==================
+
 echo "==> Configurando lightdm como o gerenciador de login padrão..."
 sudo systemctl enable lightdm
 sudo systemctl set-default graphical.target
 echo "==> lightdm definido como padrão."
-# ================== FIM DA CORREÇÃO DE BOOT ==================
 
 
 # Entra no diretório principal
@@ -119,6 +117,8 @@ else
     cd i3 && git pull
 fi
 
+# Limpa build antigo em caso de falha anterior
+rm -rf build
 meson setup build
 ninja -C build
 sudo ninja -C build install
@@ -215,7 +215,6 @@ if [ ! -d "$ZSH_CUSTOM" ]; then
 fi
 
 ln -sf "$MAIN_DIR/zsh-syntax-highlighting" "$ZSH_CUSTOM/zsh-syntax-highlighting"
-
 echo "==> AVISO: zsh-syntax-highlighting está linkado."
 echo "==> Por favor, adicione 'zsh-syntax-highlighting' à sua lista 'plugins=(...)' no seu arquivo ~/.zshrc manualmente."
 
@@ -241,7 +240,7 @@ sudo make install
 
 git reset --hard
 git clean -fd
-cd "$MAIN_DIR"
+cd "$MAIN_SDIR"
 
 #==================================================
 # tmuxinator
@@ -350,7 +349,6 @@ if [ ! -f "configure" ]; then
     ./autogen.sh
 fi
 ./configure
-
 echo "Compilando com make..."
 make
 echo "Instalando com make install..."
@@ -512,31 +510,24 @@ cd "$MAIN_DIR"
 # Esta secção usa SCRIPT_DIR (definido no topo do script)
 # para encontrar 'dotvim' e 'dotvimrc' ao lado do script .sh
 
-# Define a fonte dos seus dotfiles do Vim
 VIM_CONFIG_SOURCE="$SCRIPT_DIR"
 
-# --- INÍCIO DA MODIFICAÇÃO ---
 # Garante que a pasta 'dotvim' exista no diretório do script
-# O '-p' evita erros caso a pasta já exista.
 echo "Verificando e criando $VIM_CONFIG_SOURCE/dotvim se necessário..."
 mkdir -p "$VIM_CONFIG_SOURCE/dotvim"
-# --- FIM DA MODIFICAÇÃO ---
 
 if [ ! -d "$VIM_CONFIG_SOURCE/dotvim" ] || [ ! -f "$VIM_CONFIG_SOURCE/dotvimrc" ]; then
-    echo "AVISO: 'dotvimrc' não encontrado em $VIM_CONFIG_SOURCE."
+    echo "AVISO: 'dotvim' ou 'dotvimrc' não encontrados em $VIM_CONFIG_SOURCE."
     echo "Pulando a configuração do Vim. O PlugInstall manual será necessário."
 else
     echo "Configurações do Vim encontradas em $VIM_CONFIG_SOURCE."
     
-    # 1. Linkar seu .vimrc
     ln -sf "$VIM_CONFIG_SOURCE/dotvimrc" "$HOME/.vimrc"
     echo "Linkado: $VIM_CONFIG_SOURCE/dotvimrc -> ~/.vimrc"
     
-    # 2. Linkar sua pasta .vim
     ln -sf "$VIM_CONFIG_SOURCE/dotvim" "$HOME/.vim"
     echo "Linkado: $VIM_CONFIG_SOURCE/dotvim -> ~/.vim"
 
-    # 3. Agora, instalar o vim-plug DENTRO da estrutura linkada
     echo "Instalando o vim-plug..."
     curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
         https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
@@ -547,16 +538,45 @@ else
         echo "vim-plug instalado com sucesso!"
     fi
 
-    # 4. Agora, rodar o PlugInstall
-    # (O vim-plug irá ler o seu .vimrc e instalar os plugins em '~/git/submodules')
     echo "Instalando plugins definidos no seu .vimrc..."
     vim +PlugInstall +qall
     echo "Instalação de plugins do Vim concluída."
 fi
 
 #==================================================
+# Configuração do Touchpad (Tap-to-Click)
+#==================================================
+echo "==> Configurando o Touchpad (Tap-to-Click)..."
+
+# Define o conteúdo do arquivo de configuração do Xorg
+TOUCHPAD_CONFIG=$(cat << 'EOT'
+Section "InputClass"
+    Identifier "libinput touchpad catchall"
+    MatchIsTouchpad "on"
+    MatchDevicePath "/dev/input/event*"
+    Driver "libinput"
+    # Habilita o "Tocar para Clicar"
+    Option "Tapping" "on"
+    # Habilita o "Clique com Botão Direito" ao tocar com dois dedos
+    Option "TapButton2" "3"
+    # Habilita o "Clique com Botão do Meio" ao tocar com três dedos
+    Option "TapButton3" "2"
+EndSection
+EOT
+)
+
+# Cria o diretório se ele não existir
+sudo mkdir -p /etc/X11/xorg.conf.d/
+
+# Escreve a configuração no arquivo
+echo "$TOUCHPAD_CONFIG" | sudo tee /etc/X11/xorg.conf.d/40-libinput.conf > /dev/null
+echo "Configuração do touchpad aplicada."
+
+
+#==================================================
 # Configuração de Links Simbólicos (Dotfiles)
 #==================================================
+
 # Esta secção usa SCRIPT_DIR para encontrar 'doti3' ao lado do script .sh
 I3_CONFIG_SOURCE="$SCRIPT_DIR/doti3"
 
@@ -564,27 +584,28 @@ if [ -d "$I3_CONFIG_SOURCE" ]; then
     echo "Diretório doti3 encontrado em: $I3_CONFIG_SOURCE"
     echo "Criando link simbólico para a configuração do i3..."
     
-    if [ ! -e "$HOME/.i3" ]; then
-        ln -sf "$I3_CONFIG_SOURCE" "$HOME/.i3"
-        echo "Linkado: $I3_CONFIG_SOURCE -> ~/.i3"
-    fi
+    # Remove qualquer link ou diretório antigo para evitar conflitos
+    rm -rf "$HOME/.i3"
+    
+    # Cria o link simbólico
+    ln -sf "$I3_CONFIG_SOURCE" "$HOME/.i3"
+    echo "Linkado: $I3_CONFIG_SOURCE -> ~/.i3"
 
     mkdir -p "$HOME/.i3"
 
     echo "Copiando os arquivos de configuração do i3 (de doti3)..."
     if [ -f "$I3_CONFIG_SOURCE/config_git" ]; then
         cp "$I3_CONFIG_SOURCE/config_git" "$HOME/.i3/config"
-    fi
-    if [ -f "$I3_CONFIG_SOURCE/i3blocks.conf_git" ]; then
-        cp "$I3_CONFIG_SOURCE/i3blocks.conf_git" "$HOME/.i3/i3blocks.conf"
+        echo "Copiado: config_git -> ~/.i3/config"
+    else
+        echo "AVISO: $I3_CONFIG_SOURCE/config_git não encontrado."
     fi
     
-    echo "Copiando scripts do i3blocks (de $MAIN_DIR)..."
-    if [ -f "$MAIN_DIR/i3blocks/wifi_git" ]; then
-        cp "$MAIN_DIR/i3blocks/wifi_git" "$MAIN_DIR/i3blocks/wifi"
-    fi
-    if [ -f "$MAIN_DIR/i3blocks/battery_git" ]; then
-        cp "$MAIN_DIR/i3blocks/battery_git" "$MAIN_DIR/i3blocks/battery"
+    if [ -f "$I3_CONFIG_SOURCE/i3blocks.conf_git" ]; then
+        cp "$I3_CONFIG_SOURCE/i3blocks.conf_git" "$HOME/.i3/i3blocks.conf"
+        echo "Copiado: i3blocks.conf_git -> ~/.i3/i3blocks.conf"
+    else
+        echo "AVISO: $I3_CONFIG_SOURCE/i3blocks.conf_git não encontrado."
     fi
     
 else
@@ -595,7 +616,7 @@ fi
 if ! dpkg -l | grep -q lightdm; then
     echo "AVISO: lightdm não foi instalado corretamente!"
 else
-    echo "lightdm instalado e configurado com sucesso!"
+    echo "lightdm instalado com sucesso!"
 fi
 
 echo "=============================================="
@@ -605,5 +626,5 @@ echo "1. Os plugins do Vim (YCM, NERDTree, etc) foram instalados em $MAIN_DIR."
 echo "2. Suas configs 'doti3' foram linkadas a partir de $SCRIPT_DIR."
 echo "3. Reinicie seu shell (ou 'source ~/.bashrc' / 'source ~/.zshrc') para aplicar mudanças de PATH."
 echo "4. Você precisará adicionar 'zsh-syntax-highlighting' manualmente ao seu ~/.zshrc."
-echo "5. REINICIE O COMPUTADOR para que o 'lightdm' e as mudanças do 'hid_apple' tenham efeito."
+echo "5. REINICIE O COMPUTADOR para que o 'lightdm', 'urxvt', e as mudanças do 'hid_apple' tenham efeito."
 echo "=============================================="
