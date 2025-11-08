@@ -754,7 +754,7 @@ instance=Master
 #instance=PCM
 interval=1
 signal=10
-command=~/.i3/show_volume.sh
+command=~/git/submodules/i3blocks-contrib/volume/volume
 # olor=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 # EPIGEN_DEL_BLOCK_PAVEL EPIGEN_DEL_BLOCK_VOJTA EPIGEN_DEL_BLOCK_MATEJ EPIGEN_DEL_BLOCK_ONDRA }
@@ -829,6 +829,7 @@ color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 label=⚡ 
 instance=0
 interval=30
+command=~/git/submodules/i3blocks-contrib/battery/battery
 # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 # EPIGEN_DEL_BLOCK_PAVEL EPIGEN_DEL_BLOCK_VOJTA EPIGEN_DEL_BLOCK_MATEJ EPIGEN_DEL_BLOCK_ONDRA }
