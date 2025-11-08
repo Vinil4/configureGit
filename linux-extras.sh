@@ -21,7 +21,6 @@ echo "==> Atualizando repositórios APT..."
 sudo apt update
 
 echo "==> Instalando todas as dependências APT de uma vez..."
-# Instala rxvt-unicode (para urxvt) e remove xfce4-terminal
 sudo apt install -y \
     git \
     meson \
@@ -507,8 +506,7 @@ cd "$MAIN_DIR"
 #==================================================
 # Configuração do Vim & vim-plug
 #==================================================
-# Esta secção usa SCRIPT_DIR (definido no topo do script)
-# para encontrar 'dotvim' e 'dotvimrc' ao lado do script .sh
+# Esta secção usa SCRIPT_DIR (definido no topo do script) para encontrar 'dotvim' e 'dotvimrc' ao lado do script .sh
 
 VIM_CONFIG_SOURCE="$SCRIPT_DIR"
 
