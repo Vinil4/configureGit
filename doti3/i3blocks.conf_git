@@ -754,7 +754,7 @@ instance=Master
 #instance=PCM
 interval=1
 signal=10
-command=~/git/submodules/i3blocks-contrib/volume/volume
+command=~/git/submodules/i3blocks-contrib/volume/volume 5 pulse
 # olor=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 # EPIGEN_DEL_BLOCK_PAVEL EPIGEN_DEL_BLOCK_VOJTA EPIGEN_DEL_BLOCK_MATEJ EPIGEN_DEL_BLOCK_ONDRA }
