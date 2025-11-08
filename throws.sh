@@ -126,6 +126,11 @@ function ra {
     fi
 }
 
+# 2. Carregar o ambiente do ROS 2
+if [ -f /opt/ros/jazzy/setup.bash ]; then
+    source /opt/ros/jazzy/setup.bash
+fi
+
 # 2. Iniciar o Tmux automatically
 # (Apenas se não estivermos já no Tmux e se for uma sessão interativa)
 if [ -z "$TMUX" ] && [ "$TERM" != "dumb" ] && [ -n "$PS1" ]; then
