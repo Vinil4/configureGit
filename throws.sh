@@ -190,7 +190,7 @@ URxvt.color11:          #657b83
 URxvt.color4:           #268bd2
 URxvt.color12:          #839496
 URxvt.color5:           #d33682
-URxvt.color13:          #6c71c4
+URxvt.colorG13:          #6c71c4
 URxvt.color6:           #2aa198
 URxvt.color14:          #93a1a1
 URxvt.color7:           #eee8d5
@@ -221,6 +221,12 @@ else
 fi
 
 # ----------------------------------------------------
+
+if ! grep -q "source /opt/ros/jazzy/setup.bash" ~/.bashrc; then
+    echo "" >> ~/.bashrc
+    echo "# setup dos ROS 2 JAZZY" >> ~/.bashrc
+    echo 'source /opt/ros/jazzy/setup.bash' >> ~/.bashrc
+fi
 
 mkdir -p ~/git/submodules/walls &&
 cp ~/git/configureGit/walls/1337390.png ~/git/configureGit/walls/snorlax.jpg ~/git/submodules/walls
