@@ -3,7 +3,7 @@
 # Este script aplica 5 personalizações:
 # 1. Instala dependências e configura o clipboard do sistema no Vim
 # 2. Altera o prefixo do Tmux para Ctrl+A, adiciona o modo Vim e atalhos de 'kill'
-# 3. Cria um alias 'ra' para 'ranger'
+# 3. Cria uma FUNÇÃO 'ra' para o ranger (para mudar o diretório ao sair)
 # 4. Inicia o Tmux automaticamente no login do shell
 # 5. Configura o terminal URxvt (rxvt-unicode) com tema e fonte
 
@@ -95,17 +95,38 @@ echo ""
 
 # ----------------------------------------------------
 
-echo "==> Configurando o Shell (alias 'ra' e auto-start do Tmux)..."
+echo "==> Configurando o Shell (função 'ra' e auto-start do Tmux)..."
+# --- CORRIGIDO: Adicionado 'unalias' para garantir que a função 'ra' ganhe ---
 CONFIG_BLOCK=$(cat << 'EOT'
 
 # ==================================
 # Minhas Personalizações (auto-gerado)
 # ==================================
 
-# 1. Alias para o Ranger
-alias ra="ranger"
+# 1. Função 'ra' (Ranger) com 'cd' ao sair
+# Remove qualquer 'alias ra' conflitante que possa existir
+unalias ra 2>/dev/null
 
-# 2. Iniciar o Tmux automaticamente
+function ra {
+    local tempfile="$(mktemp -t ranger-cd.XXXXXX)"
+    # --choosedir diz ao ranger para escrever o último dir neste arquivo
+    # "${@:-$(pwd)}" inicia o ranger no diretório atual
+    ranger --choosedir="$tempfile" "${@:-$(pwd)}"
+    
+    # Se o arquivo temporário foi criado e ainda existe
+    if [ -f "$tempfile" ]; then
+        local target_dir="$(cat "$tempfile")"
+        rm -f "$tempfile"
+        
+        # Se o diretório de destino não estiver vazio e for diferente do atual
+        if [ -n "$target_dir" ] && [ "$target_dir" != "$(pwd)" ]; then
+            # Muda para o diretório de destino
+            cd "$target_dir"
+        fi
+    fi
+}
+
+# 2. Iniciar o Tmux automatically
 # (Apenas se não estivermos já no Tmux e se for uma sessão interativa)
 if [ -z "$TMUX" ] && [ "$TERM" != "dumb" ] && [ -n "$PS1" ]; then
     # O -A "atacha" a uma sessão "main" ou cria uma se não existir.
@@ -116,7 +137,8 @@ EOT
 
 # Aplicar ao .bashrc
 if [ -f "$HOME/.bashrc" ]; then
-    if ! grep -q 'alias ra="ranger"' ~/.bashrc; then
+    # --- CORRIGIDO: Procura pela função 'ra' em vez do alias ---
+    if ! grep -q 'function ra {' ~/.bashrc; then
         echo "$CONFIG_BLOCK" >> ~/.bashrc
         echo "Configuração aplicada ao ~/.bashrc"
     else
@@ -126,7 +148,8 @@ fi
 
 # Aplicar ao .zshrc
 if [ -f "$HOME/.zshrc" ]; then
-    if ! grep -q 'alias ra="ranger"' ~/.zshrc; then
+    # --- CORRIGIDO: Procura pela função 'ra' em vez do alias ---
+    if ! grep -q 'function ra {' ~/.zshrc; then
         echo "$CONFIG_BLOCK" >> ~/.zshrc
         echo "Configuração aplicada ao ~/.zshrc"
     else
@@ -194,10 +217,13 @@ fi
 
 # ----------------------------------------------------
 
+mkdir -p ~/git/submodules/walls &&
+cp ~/git/configureGit/walls/1337390.png ~/git/configureGit/walls/snorlax.jpg ~/git/submodules/walls
+
 echo ""
 echo "Concluído!"
 echo ""
-echo "Para aplicar as mudanças do shell (alias, tmux), reinicie o seu terminal ou execute:"
+echo "Para aplicar as mudanças do shell (função 'ra', tmux), reinicie o seu terminal ou execute:"
 echo "  source ~/.bashrc"
 echo "  ou"
 echo "  source ~/.zshrc"

@@ -240,7 +240,7 @@ sudo make install
 
 git reset --hard
 git clean -fd
-cd "$MAIN_SDIR"
+cd "$MAIN_DIR"
 
 #==================================================
 # tmuxinator
