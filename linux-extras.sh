@@ -71,6 +71,9 @@ sudo apt install -y \
     libxkbcommon-x11-dev \
     libxcb-shape0-dev \
     libxcb-xrm-dev \
+    libeigen3-dev \
+    libboost-all-dev \
+    libceres-dev \
     xcb-proto \
     libglib2.0-dev \
     libevent-dev \
