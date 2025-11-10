@@ -90,6 +90,24 @@ if ! grep -q "bind Q confirm-before" ~/.tmux.conf; then
     echo 'bind Q confirm-before -p "Matar todo o servidor tmux? (y/n)" kill-server' >> ~/.tmux.conf
 fi
 
+# Adiciona o cabeçalho se não existir
+if ! grep -qF "# --- Configurações de Cópia (estilo Vim) ---" ~/.tmux.conf; then
+	echo "" >> ~/.tmux.conf
+	echo "# --- Configurações de Cópia (estilo Vim) ---" >> ~/.tmux.conf
+fi
+
+# Adiciona o binding 'v' se não existir
+if ! grep -qF "bind-key -T copy-mode-vi 'v' send-keys -X begin-selection" ~/.tmux.conf; then
+	echo "# 'v' começa a seleção (como no Vim)" >> ~/.tmux.conf
+	echo "bind-key -T copy-mode-vi 'v' send-keys -X begin-selection" >> ~/.tmux.conf
+fi
+
+# Adiciona o binding 'y' (com xsel) se não existir
+if ! grep -qF "bind-key -T copy-mode-vi 'y' send-keys -X copy-pipe-and-cancel 'xsel --clipboard --input'" ~/.tmux.conf; then
+	echo "# 'y' copia a seleção E envia para o clipboard do sistema (usando xsel)" >> ~/.tmux.conf
+	echo "bind-key -T copy-mode-vi 'y' send-keys -X copy-pipe-and-cancel 'xsel --clipboard --input'" >> ~/.tmux.conf
+fi
+
 echo "Configuração do Tmux (com modo Vim e atalhos de 'kill') concluída."
 echo ""
 
