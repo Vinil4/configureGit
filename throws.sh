@@ -149,12 +149,6 @@ if [ -f /opt/ros/jazzy/setup.bash ]; then
     source /opt/ros/jazzy/setup.bash
 fi
 
-# 2. Iniciar o Tmux automatically
-# (Apenas se não estivermos já no Tmux e se for uma sessão interativa)
-if [ -z "$TMUX" ] && [ "$TERM" != "dumb" ] && [ -n "$PS1" ]; then
-    # O -A "atacha" a uma sessão "main" ou cria uma se não existir.
-    tmux new-session -A -s main
-fi
 EOT
 )
 

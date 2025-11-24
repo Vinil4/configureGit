@@ -22,7 +22,7 @@ Plug 'ycm-core/YouCompleteMe', { 'do': './install.py --all' }
 Plug 'SirVer/ultisnips'
 
 " Verificador de sintaxe Assíncrono (Linting)
-Plug 'neomake/neomake'
+" Plug 'neomake/neomake'
 
 " --- CONFLITO ---
 " Verificador de sintaxe Síncrono (antigo, não use com Neomake)
@@ -128,9 +128,12 @@ let NERDTreeShowHidden=1
 
 " Configurações para Neomake
 " Ativa o Neomake quando salvar e quando abrir o arquivo
-autocmd! BufWritePost,BufRead * Neomake
+" autocmd! BufWritePost,BufRead * Neomake
 
 " Adicione mais configurações pessoais aqui...
 
 " Linka o Vim com o clipboard do sistema (Ctrl+C/Ctrl+V)
 set clipboard=unnamedplus
+
+" Mostrar erros
+let g:ycm_enable_diagnostic_highlighting = 0
