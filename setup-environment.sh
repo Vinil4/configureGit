@@ -217,6 +217,19 @@ URxvt.letterSpace: -1
 ! Desabilita o modo ISO 14755 (que usa Ctrl+Shift)
 URxvt.iso14755: false
 URxvt.iso14755_52: false
+
+! Habilita extensões Perl necessárias para clipboard
+URxvt.perl-ext-common: default,matcher,selection-to-clipboard
+
+! Define os atalhos (C = Control, S = Shift)
+! Ctrl+Shift+C para Copiar para o Clipboard
+URxvt.keysym.C-S-c: eval:selection_to_clipboard
+! Ctrl+Shift+V para Colar do Clipboard
+URxvt.keysym.C-S-v: eval:paste_clipboard
+
+! (Opcional) Clicar em URLs para abrir no navegador
+URxvt.url-launcher: xdg-open
+URxvt.matcher.button: 1
 EOT
 )
 

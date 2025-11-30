@@ -19,8 +19,8 @@ mkdir -p ~/git &&
 cd ~/git &&
 git clone https://github.com/Vinil4/configureGit.git &&
 cd ~/git/configureGit &&
-chmod +x linux-extras.sh &&
-chmod +x throws.sh &&
-./linux-extras.sh &&
-./throws.sh
+chmod +x setup-linux.sh &&
+chmod +x setup-environment.sh &&
+./setup-linux.sh &&
+./setup-environment.sh
 ```

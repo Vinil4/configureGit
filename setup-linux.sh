@@ -73,6 +73,7 @@ sudo apt install -y \
     libxcb-xrm-dev \
     libeigen3-dev \
     libboost-all-dev \
+    libusb-1.0-0-dev \
     libceres-dev \
     xcb-proto \
     libglib2.0-dev \
@@ -90,7 +91,10 @@ sudo apt install -y \
     universal-ctags \
     clang-format \
     texlive-extra-utils \
-    npm
+    npm \
+    fonts-font-awesome \
+    fonts-terminus \
+    xfonts-terminus
 
 echo "==> Aplicando upgrade do sistema..."
 sudo apt upgrade -y
@@ -558,6 +562,8 @@ Section "InputClass"
     Driver "libinput"
     # Habilita o "Tocar para Clicar"
     Option "Tapping" "on"
+    # Habilita o movimento do touch invertido
+    Option "NaturalScrolling" "true"
     # Habilita o "Clique com Botão Direito" ao tocar com dois dedos
     Option "TapButton2" "3"
     # Habilita o "Clique com Botão do Meio" ao tocar com três dedos
@@ -572,6 +578,16 @@ sudo mkdir -p /etc/X11/xorg.conf.d/
 # Escreve a configuração no arquivo
 echo "$TOUCHPAD_CONFIG" | sudo tee /etc/X11/xorg.conf.d/40-libinput.conf > /dev/null
 echo "Configuração do touchpad aplicada."
+
+# Cria o arquivo de configuração 00-keyboard.conf
+echo 'Section "InputClass"
+        Identifier "system-keyboard"
+        MatchIsKeyboard "on"
+        Option "XkbLayout" "br"
+        Option "XkbModel" "abnt2"
+EndSection' | sudo tee /etc/X11/xorg.conf.d/00-keyboard.conf > /dev/null
+
+echo "Teclado configurado. Reinicie para aplicar no LightDM e no i3."
 
 
 #==================================================
@@ -645,12 +661,112 @@ echo "==> 3. Instalando pacotes do ROS 2..."
 sudo apt-get update # Atualiza após adicionar os novos repositórios
 sudo apt-get install -y \
     ros-jazzy-desktop-full \
-    ros-dev-tools
+    ros-dev-tools \
+    ros-jazzy-ros-gz \
+    ros-jazzy-actuator-msgs \
+    ros-jazzy-mavlink \
+    ros-jazzy-pcl-ros
 
 echo "==> Instalação do ROS 2 Jazzy concluída!"
 echo "==> AVISO IMPORTANTE: Adicione o seguinte ao seu ~/.bashrc ou ~/.zshrc:"
 echo "==>   source /opt/ros/jazzy/setup.bash"
 echo "=================================================="
+
+#===================================================
+# Instalação do firmware PX4
+#===================================================
+
+
+# --- Dependências Python (PX4 + Gitman) ---
+echo "==> Instalando Dependências Python..."
+pip3 install --user -U empy pyros-genmsg setuptools kconfiglib jinja2 jsonschema future packaging gitman
+
+# 1. Instalar Micro XRCE-DDS Agent (Obrigatório compilar)
+echo "==> Instalando Micro XRCE-DDS Agent..."
+if [ ! -f "/usr/local/bin/MicroXRCEAgent" ]; then
+    mkdir -p /tmp/xrce_build && cd /tmp/xrce_build
+    git clone https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
+    cd Micro-XRCE-DDS-Agent && mkdir build && cd build
+    cmake ..
+    make
+    sudo make install
+    sudo ldconfig /usr/local/lib/
+    rm -rf /tmp/xrce_build
+    echo "Agent instalado."
+else
+    echo "Agent já estava instalado."
+fi
+
+echo "==> Ambiente base pronto!"
+
+cd $MAIN_DIR
+
+# 2. Clonar o PX4 (Isso baixa o código fonte e os submódulos)
+echo "==> Clonando PX4 Autopilot..."
+git clone https://github.com/PX4/PX4-Autopilot.git --recursive
+
+# 3. Rodar o script de setup oficial do PX4
+# Esse script mágico instala bibliotecas Python, GStreamer, Java, etc.
+echo "==> Instalando dependências do PX4..."
+cd PX4-Autopilot
+bash ./Tools/setup/ubuntu.sh --no-nuttx
+
+echo "==> Pré-compilando PX4 SITL (x500)..."
+# Isso garante que a simulação funcione de primeira
+make px4_sitl_default
+
+#===================================================
+# Instalação do ACADOS
+#===================================================
+
+echo "==> Instalando ACADOS (Solver NMPC)..."
+# instalar em ~/git/dependencies para ficar organizado
+mkdir -p ~/git/dependencies
+cd ~/git/dependencies
+
+if [ ! -d "acados" ]; then
+    git clone https://github.com/acados/acados.git
+    cd acados
+    git submodule update --recursive --init
+    mkdir -p build
+    cd build
+    # Flag QPOASES ativada
+    cmake -DACADOS_WITH_QPOASES=ON ..
+    make install -j4
+    
+    # Exportar variáveis para o .bashrc
+    echo "" >> ~/.bashrc
+    echo "# ACADOS Configuration" >> ~/.bashrc
+    echo "export ACADOS_SOURCE_DIR=\"$HOME/git/dependencies/acados\"" >> ~/.bashrc
+    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\"$HOME/git/dependencies/acados/lib\"" >> ~/.bashrc
+    echo "   -> ACADOS instalado e variáveis adicionadas ao .bashrc"
+else
+    echo "   -> ACADOS já parece estar instalado."
+fi
+
+# --- Finalização ---
+echo "==> Configurando Variáveis de Ambiente Finais..."
+
+#===================================================
+# Configuração das Variáveis de ambiente
+#===================================================
+
+# Variáveis do Gazebo Harmonic para encontrar modelos do PX4
+if ! grep -q "GZ_SIM_RESOURCE_PATH" ~/.bashrc; then
+    echo "" >> ~/.bashrc
+    echo "# Gazebo Harmonic + PX4 Resources" >> ~/.bashrc
+    echo "export GZ_SIM_RESOURCE_PATH=\$GZ_SIM_RESOURCE_PATH:$HOME/git/submodules/PX4-Autopilot/Tools/simulation/gz/models:$HOME/git/submodules/PX4-Autopilot/Tools/simulation/gz/worlds" >> ~/.bashrc
+fi
+
+# Configurar Colcon para usar symlink por padrão (opcional, mas útil dev)
+if ! grep -q "COLCON_DEFAULTS_FILE" ~/.bashrc; then
+     mkdir -p ~/.colcon
+     echo '{"build": {"symlink-install": true}}' > ~/.colcon/defaults.yaml
+fi
+
+# Mensagem Final Estilosa
+toilet -f smblock "LASER UAV"
+toilet -f smblock "INSTALLED"
 
 #===================================================
 # Verificação final do lightdm
