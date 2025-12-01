@@ -36,6 +36,7 @@ sudo apt install -y \
     bison \
     lightdm \
     python3-pip \
+    python3-kconfiglib \
     pandoc \
     vim \
     golang \
