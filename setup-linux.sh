@@ -20,83 +20,81 @@ mkdir -p "$MAIN_DIR"
 echo "==> Atualizando repositórios APT..."
 sudo apt update
 
-echo "==> Instalando todas as dependências APT de uma vez..."
+echo "==> Instalando ferramentas e dependências via APT..."
+
+# Atualiza listas
+sudo apt update
+
+# Instala tudo de uma vez
 sudo apt install -y \
+    # --- Ferramentas de Build e Base ---
     git \
-    meson \
-    cmake \
-    gettext \
-    ninja-build \
     build-essential \
+    cmake \
     pkg-config \
     make \
     automake \
     autoconf \
     curl \
-    bison \
-    lightdm \
     python3-pip \
-    python3-kconfiglib \
-    pandoc \
-    vim \
+    python3-dev \
+    python3-venv \
     golang \
-    ruby-full \
-    rubygems \
-    xbacklight \
-    alsa-utils \
-    pulseaudio \
-    feh \
-    arandr \
-    lxappearance \
-    thunar \
-    rofi \
-    compton \
-    rxvt-unicode \
-    i3lock \
     jq \
+    libreadline-dev \
+    
+    # --- Interface Gráfica (i3 e utilitários) ---
+    lightdm \
+    i3-wm \
+    i3lock \
+    i3status \
+    i3blocks \
+    suckless-tools \
+    dmenu \
+    rofi \
+    feh \
+    compton \
+    xorg \
+    xinit \
     xbindkeys \
     xdotool \
-    libxcb1-dev \
-    libxcb-keysyms1-dev \
-    libpango1.0-dev \
-    libxcb-util0-dev \
-    libxcb-icccm4-dev \
-    libyajl-dev \
-    libstartup-notification0-dev \
-    libxcb-randr0-dev \
-    libev-dev \
-    libxcb-cursor-dev \
-    libxcb-xinerama0-dev \
-    libxcb-xkb-dev \
-    libxkbcommon-dev \
-    libxkbcommon-x11-dev \
-    libxcb-shape0-dev \
-    libxcb-xrm-dev \
+    lxappearance \
+    arandr \
+    
+    # --- Terminal e Produtividade (Substituindo seus submodules antigos) ---
+    tmux \
+    tmuxinator \
+    ranger \
+    fzf \
+    silversearcher-ag \
+    htop \
+    zsh-syntax-highlighting \
+    
+    # --- Editores e Visualizadores ---
+    vim-gtk3 \
+    pdfpc \
+    vimiv \
+    
+    # --- Áudio e Brilho ---
+    pulseaudio \
+    alsa-utils \
+    pasystray \
+    light \
+    brightnessctl \
+    
+    # --- Fontes ---
+    fonts-font-awesome \
+    fonts-terminus \
+    xfonts-terminus \
+    
+    # --- Dependências de Robótica (PX4/ROS) ---
     libeigen3-dev \
     libboost-all-dev \
     libusb-1.0-0-dev \
     libceres-dev \
-    xcb-proto \
-    libglib2.0-dev \
-    libevent-dev \
-    libncurses5-dev \
-    libpcre3 \
-    libpcre3-dev \
-    zlib1g-dev \
-    libx11-dev \
-    libxkbfile-dev \
-    libgtk-3-dev \
-    libayatana-appindicator3-dev \
-    libcanberra-gtk3-dev \
-    python3-dev \
-    universal-ctags \
-    clang-format \
-    texlive-extra-utils \
-    npm \
-    fonts-font-awesome \
-    fonts-terminus \
-    xfonts-terminus
+    libglib2.0-dev
 
+echo "==> Instalação via APT concluída!"
 echo "==> Aplicando upgrade do sistema..."
 sudo apt upgrade -y
 
@@ -114,39 +112,57 @@ echo "==> lightdm definido como padrão."
 cd "$MAIN_DIR"
 
 #==================================================
-# i3 (Airblader)
+# Athame (Vim mode for Readline)
 #==================================================
-if [ ! -d "i3" ]; then
-    echo "Clonando o repositório do i3 (Airblader)..."
-    git clone https://github.com/Airblader/i3.git && cd i3
-else
-    echo "==> Repositório i3 já existe, atualizando..."
-    cd i3 && git pull
+echo "==> Configurando Athame..."
+if [ ! -d "$MAIN_DIR/athame" ]; then
+    echo "Clonando Athame..."
+    git clone https://github.com/ardagnir/athame.git "$MAIN_DIR/athame"
 fi
 
-# Limpa build antigo em caso de falha anterior
-rm -rf build
-meson setup build
-ninja -C build
-sudo ninja -C build install
+echo "Entrando em $MAIN_DIR/athame..."
+cd "$MAIN_DIR/athame"
+git pull
+
+echo "Compilando Athame..."
+make
+sudo make install
+
+# O Athame geralmente precisa atualizar o arquivo .inputrc
+echo "Atualizando .inputrc para suportar Athame..."
+# Verifica se já existe configuração para não duplicar
+if ! grep -q "athame_init" ~/.inputrc 2>/dev/null; then
+    echo '$include /usr/local/lib/athame/athame_init.rl' >> ~/.inputrc
+    echo "set editing-mode vi" >> ~/.inputrc
+    echo "Configuração adicionada ao ~/.inputrc"
+else
+    echo "Athame já configurado no .inputrc."
+fi
+
 cd "$MAIN_DIR"
 
 #==================================================
-# i3blocks
+# Pandoc Goodies
 #==================================================
-if [ ! -d "i3blocks" ]; then
-    echo "Clonando o repositório do i3blocks..."
-    git clone https://github.com/vivien/i3blocks.git i3blocks && cd i3blocks
-else
-    echo "==> Repositório i3blocks já existe, atualizando..."
-    cd i3blocks && git pull
+echo "==> Configurando Pandoc Goodies..."
+if [ ! -d "$MAIN_DIR/pandoc-goodies" ]; then
+    git clone https://github.com/tajmone/pandoc-goodies.git "$MAIN_DIR/pandoc-goodies"
 fi
 
-echo "Configurando i3blocks com autotools (configure/make)..."
-./autogen.sh
-./configure --prefix=/usr
-make
-sudo make install
+# Adiciona ao PATH se ainda não estiver
+PANDOC_PATH="$MAIN_DIR/pandoc-goodies/scripts"
+if ! grep -q "pandoc-goodies" ~/.bashrc; then
+    echo "Adicionando Pandoc Goodies ao PATH (.bashrc)..."
+    echo "export PATH=\"\$PATH:$PANDOC_PATH\"" >> ~/.bashrc
+fi
+
+# Se você usa ZSH, adiciona lá também
+if [ -f "$HOME/.zshrc" ]; then
+    if ! grep -q "pandoc-goodies" ~/.zshrc; then
+        echo "export PATH=\"\$PATH:$PANDOC_PATH\"" >> ~/.zshrc
+    fi
+fi
+
 cd "$MAIN_DIR"
 
 #==================================================
@@ -203,197 +219,6 @@ sudo chmod +x /usr/local/bin/i3-layout-manager
 git reset --hard
 git clean -fd
 echo "Retornando para $MAIN_DIR"
-cd "$MAIN_DIR"
-
-#==================================================
-# zsh-syntax-highlighting
-#==================================================
-if [ ! -d "$MAIN_DIR/zsh-syntax-highlighting" ]; then
-    echo "Clonando o repositório zsh-syntax-highlighting..."
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$MAIN_DIR/zsh-syntax-highlighting" && cd "$MAIN_DIR/zsh-syntax-highlighting"
-else
-    echo "==> Repositório zsh-syntax-highlighting já existe, atualizando..."
-    cd "$MAIN_DIR/zsh-syntax-highlighting" && git pull
-fi
-
-ZSH_CUSTOM=${ZSH_CUSTOM:-"$HOME/.oh-my-zsh/custom"}/plugins
-if [ ! -d "$ZSH_CUSTOM" ]; then
-    mkdir -p "$ZSH_CUSTOM"
-fi
-
-ln -sf "$MAIN_DIR/zsh-syntax-highlighting" "$ZSH_CUSTOM/zsh-syntax-highlighting"
-echo "==> AVISO: zsh-syntax-highlighting está linkado."
-echo "==> Por favor, adicione 'zsh-syntax-highlighting' à sua lista 'plugins=(...)' no seu arquivo ~/.zshrc manualmente."
-
-git reset --hard
-git clean -fd
-cd "$MAIN_DIR"
-
-#==================================================
-# tmux
-#==================================================
-if [ ! -d "$MAIN_DIR/tmux" ]; then
-    echo "Clonando o repositório tmux..."
-    git clone https://github.com/tmux/tmux.git "$MAIN_DIR/tmux" && cd "$MAIN_DIR/tmux"
-else
-    echo "==> Repositório tmux já existe, atualizando..."
-    cd "$MAIN_DIR/tmux" && git pull
-fi
-
-./autogen.sh
-./configure
-make
-sudo make install
-
-git reset --hard
-git clean -fd
-cd "$MAIN_DIR"
-
-#==================================================
-# tmuxinator
-#==================================================
-if [ ! -d "$MAIN_DIR/tmuxinator" ]; then
-    echo "Clonando o repositório tmuxinator..."
-    git clone https://github.com/tmuxinator/tmuxinator.git "$MAIN_DIR/tmuxinator" && cd "$MAIN_DIR/tmuxinator"
-else
-    echo "==> Repositório tmuxinator já existe, atualizando..."
-    cd "$MAIN_DIR/tmuxinator" && git pull
-fi
-
-sudo gem install bundler
-sudo bundle install
-sudo gem install tmuxinator
-
-git reset --hard
-git clean -fd
-cd "$MAIN_DIR"
-
-#==================================================
-# fzf
-#==================================================
-if [ ! -d "$MAIN_DIR/fzf" ]; then
-    echo "Clonando o repositório fzf..."
-    git clone --depth 1 https://github.com/junegunn/fzf.git "$MAIN_DIR/fzf" && cd "$MAIN_DIR/fzf"
-else
-    echo "==> Repositório fzf já existe, atualizando..."
-    cd "$MAIN_DIR/fzf" && git pull
-fi
-
-echo "Instalando o fzf (não-interativo)..."
-./install --all
-
-echo "Criando link simbólico para fzf em /usr/local/bin..."
-sudo ln -sf "$HOME/.fzf/bin/fzf" /usr/local/bin/fzf
-
-if command -v fzf > /dev/null; then
-    echo "fzf instalado com sucesso!"
-else
-    echo "Erro na instalação do fzf."
-fi
-cd "$MAIN_DIR"
-
-#==================================================
-# ranger
-#==================================================
-if [ ! -d "$MAIN_DIR/ranger" ]; then
-    echo "Clonando o repositório ranger..."
-    git clone https://github.com/ranger/ranger.git "$MAIN_DIR/ranger" && cd "$MAIN_DIR/ranger"
-else
-    echo "==> Repositório ranger já existe, atualizando..."
-    cd "$MAIN_DIR/ranger" && git pull
-fi
-
-echo "Instalando dependências do ranger (pip)..."
-sudo pip3 install -r requirements.txt --break-system-packages
-
-echo "Instalando o ranger..."
-sudo make install
-
-if command -v ranger > /dev/null; then
-    echo "ranger instalado com sucesso!"
-else
-    echo "Erro na instalação do ranger."
-fi
-cd "$MAIN_DIR"
-
-#==================================================
-# pandoc-goodies
-#==================================================
-if [ ! -d "$MAIN_DIR/pandoc-goodies" ]; then
-    echo "Clonando o repositório pandoc-goodies..."
-    git clone https://github.com/tajmone/pandoc-goodies.git "$MAIN_DIR/pandoc-goodies" && cd "$MAIN_DIR/pandoc-goodies"
-else
-    echo "==> Repositório pandoc-goodies já existe, atualizando..."
-    cd "$MAIN_DIR/pandoc-goodies" && git pull
-fi
-
-echo "Adicionando os scripts do pandoc-goodies ao PATH (via .bashrc)..."
-BASHRC_LINE='export PATH="$HOME/git/submodules/pandoc-goodies/scripts:$PATH"'
-if ! grep -qF "$BASHRC_LINE" ~/.bashrc; then
-    echo "$BASHRC_LINE" >> ~/.bashrc
-fi
-
-echo "==> AVISO: 'source ~/.bashrc' será necessário para usar o pandoc-goodies no seu terminal."
-cd "$MAIN_DIR"
-
-#==================================================
-# brightnessctl
-#==================================================
-if [ ! -d "$MAIN_DIR/brightnessctl" ]; then
-    echo "Clonando o repositório brightnessctl..."
-    git clone https://github.com/Hummer12007/brightnessctl.git "$MAIN_DIR/brightnessctl"
-else
-    echo "==> Repositório brightnessctl já existe."
-fi
-
-echo "Entrando em $MAIN_DIR/brightnessctl..."
-cd "$MAIN_DIR/brightnessctl"
-echo "Atualizando repositório..."
-git pull
-
-echo "Configurando com autotools..."
-if [ ! -f "configure" ]; then
-    ./autogen.sh
-fi
-./configure
-echo "Compilando com make..."
-make
-echo "Instalando com make install..."
-sudo make install
-
-if command -v brightnessctl > /dev/null; then
-    echo "brightnessctl instalado com sucesso!"
-else
-    echo "Erro na instalação do brightnessctl."
-fi
-echo "Retornando para $MAIN_DIR"
-cd "$MAIN_DIR"
-
-#==================================================
-# The Silver Searcher (ag)
-#==================================================
-echo "Verificando The Silver Searcher (ag)..."
-if command -v ag >/dev/null 2>&1; then
-    echo "O The Silver Searcher (ag) já está instalado."
-else
-    echo "O The Silver Searcher não foi encontrado. Instalando..."
-    if [ ! -d "$MAIN_DIR/the_silver_searcher" ]; then
-        git clone https://github.com/ggreer/the_silver_searcher.git "$MAIN_DIR/the_silver_searcher"
-    fi
-    cd "$MAIN_DIR/the_silver_searcher"
-    git pull
-    
-    ./autogen.sh
-    ./configure
-    make
-    sudo make install
-
-    if command -v ag >/dev/null 2>&1; then
-        echo "The Silver Searcher (ag) instalado com sucesso!"
-    else
-        echo "Erro na instalação do The Silver Searcher!"
-    fi
-fi
 cd "$MAIN_DIR"
 
 #==================================================
@@ -512,41 +337,20 @@ fi
 cd "$MAIN_DIR"
 
 #==================================================
-# Configuração do Vim & vim-plug
+# Configuração Automática do ZSH Syntax Highlighting
 #==================================================
-# Esta secção usa SCRIPT_DIR (definido no topo do script) para encontrar 'dotvim' e 'dotvimrc' ao lado do script .sh
+# No Ubuntu 24.04 via APT, o script fica em /usr/share/...
+ZSH_HIGHLIGHT_PATH="/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
-VIM_CONFIG_SOURCE="$SCRIPT_DIR"
-
-# Garante que a pasta 'dotvim' exista no diretório do script
-echo "Verificando e criando $VIM_CONFIG_SOURCE/dotvim se necessário..."
-mkdir -p "$VIM_CONFIG_SOURCE/dotvim"
-
-if [ ! -d "$VIM_CONFIG_SOURCE/dotvim" ] || [ ! -f "$VIM_CONFIG_SOURCE/dotvimrc" ]; then
-    echo "AVISO: 'dotvim' ou 'dotvimrc' não encontrados em $VIM_CONFIG_SOURCE."
-    echo "Pulando a configuração do Vim. O PlugInstall manual será necessário."
-else
-    echo "Configurações do Vim encontradas em $VIM_CONFIG_SOURCE."
-    
-    ln -sf "$VIM_CONFIG_SOURCE/dotvimrc" "$HOME/.vimrc"
-    echo "Linkado: $VIM_CONFIG_SOURCE/dotvimrc -> ~/.vimrc"
-    
-    ln -sf "$VIM_CONFIG_SOURCE/dotvim" "$HOME/.vim"
-    echo "Linkado: $VIM_CONFIG_SOURCE/dotvim -> ~/.vim"
-
-    echo "Instalando o vim-plug..."
-    curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-
-    if [ ! -f ~/.vim/autoload/plug.vim ]; then
-        echo "Falha na instalação do vim-plug." && exit 1
+if [ -f "$ZSH_HIGHLIGHT_PATH" ]; then
+    if [ -f "$HOME/.zshrc" ]; then
+        if ! grep -q "zsh-syntax-highlighting.zsh" "$HOME/.zshrc"; then
+            echo "Ativando zsh-syntax-highlighting no .zshrc..."
+            echo "source $ZSH_HIGHLIGHT_PATH" >> "$HOME/.zshrc"
+        fi
     else
-        echo "vim-plug instalado com sucesso!"
+        echo "AVISO: .zshrc não encontrado. Instale o zsh e oh-my-zsh primeiro."
     fi
-
-    echo "Instalando plugins definidos no seu .vimrc..."
-    vim +PlugInstall +qall
-    echo "Instalação de plugins do Vim concluída."
 fi
 
 #==================================================
@@ -590,101 +394,140 @@ EndSection' | sudo tee /etc/X11/xorg.conf.d/00-keyboard.conf > /dev/null
 
 echo "Teclado configurado. Reinicie para aplicar no LightDM e no i3."
 
-
 #==================================================
-# Configuração de Links Simbólicos (Dotfiles)
+# CONFIGURAÇÃO DE DOTFILES (Vim e i3)
 #==================================================
+echo "==> Iniciando configuração de Dotfiles..."
 
-# Esta secção usa SCRIPT_DIR para encontrar 'doti3' ao lado do script .sh
-I3_CONFIG_SOURCE="$SCRIPT_DIR/doti3"
+# --- 1. CONFIGURAÇÃO DO VIM ---
+# Procura pela pasta 'dotvim' e arquivo 'dotvimrc' ao lado do script
+VIM_SOURCE_DIR="$SCRIPT_DIR/dotvim"
+VIMRC_SOURCE_FILE="$SCRIPT_DIR/dotvimrc" # Verifique se o nome é esse mesmo na sua pasta
 
-if [ -d "$I3_CONFIG_SOURCE" ]; then
-    echo "Diretório doti3 encontrado em: $I3_CONFIG_SOURCE"
-    echo "Criando link simbólico para a configuração do i3..."
+if [ -d "$VIM_SOURCE_DIR" ]; then
+    echo "Configurando Vim..."
     
-    # Remove qualquer link ou diretório antigo para evitar conflitos
-    rm -rf "$HOME/.i3"
-    
-    # Cria o link simbólico
-    ln -sf "$I3_CONFIG_SOURCE" "$HOME/.i3"
-    echo "Linkado: $I3_CONFIG_SOURCE -> ~/.i3"
-
-    mkdir -p "$HOME/.i3"
-
-    echo "Copiando os arquivos de configuração do i3 (de doti3)..."
-    if [ -f "$I3_CONFIG_SOURCE/config_git" ]; then
-        cp "$I3_CONFIG_SOURCE/config_git" "$HOME/.i3/config"
-        echo "Copiado: config_git -> ~/.i3/config"
+    # Linka o .vimrc
+    if [ -f "$VIMRC_SOURCE_FILE" ]; then
+        ln -sf "$VIMRC_SOURCE_FILE" "$HOME/.vimrc"
+        echo "  -> Link criado: ~/.vimrc aponta para $VIMRC_SOURCE_FILE"
     else
-        echo "AVISO: $I3_CONFIG_SOURCE/config_git não encontrado."
+        # Tenta procurar dentro da pasta dotvim se não estiver fora
+        if [ -f "$VIM_SOURCE_DIR/vimrc" ]; then
+             ln -sf "$VIM_SOURCE_DIR/vimrc" "$HOME/.vimrc"
+             echo "  -> Link criado: ~/.vimrc aponta para $VIM_SOURCE_DIR/vimrc"
+        else
+             echo "  AVISO: Arquivo de configuração do vim (dotvimrc ou vimrc) não encontrado."
+        fi
     fi
+
+    # Linka a pasta .vim inteira
+    # Remove a pasta antiga se existir (cuidado aqui, faz backup se tiver coisas importantes)
+    rm -rf "$HOME/.vim"
+    ln -sf "$VIM_SOURCE_DIR" "$HOME/.vim"
+    echo "  -> Link criado: ~/.vim aponta para $VIM_SOURCE_DIR"
+
+    # Instala o gerenciador de plugins (Plug)
+    echo "  -> Baixando vim-plug..."
+    curl -fLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
+        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
     
-    if [ -f "$I3_CONFIG_SOURCE/i3blocks.conf_git" ]; then
-        cp "$I3_CONFIG_SOURCE/i3blocks.conf_git" "$HOME/.i3/i3blocks.conf"
-        echo "Copiado: i3blocks.conf_git -> ~/.i3/i3blocks.conf"
-    else
-        echo "AVISO: $I3_CONFIG_SOURCE/i3blocks.conf_git não encontrado."
-    fi
-    
+    echo "  -> Instalando plugins..."
+    # Roda o vim silenciosamente para instalar plugins
+    vim -E -s -u "$HOME/.vimrc" +PlugInstall +qall || echo "Aviso: Erro ao instalar plugins (normal se for a primeira vez)"
 else
-    echo "AVISO: Diretório 'doti3' não encontrado em $SCRIPT_DIR. Pulando configs do i3."
+    echo "AVISO: Pasta 'dotvim' não encontrada em $SCRIPT_DIR."
+fi
+
+# --- 2. CONFIGURAÇÃO DO i3 e i3blocks ---
+I3_SOURCE_DIR="$SCRIPT_DIR/doti3"
+
+if [ -d "$I3_SOURCE_DIR" ]; then
+    echo "Configurando i3 e i3blocks..."
+    
+    # Cria o diretório padrão moderno
+    mkdir -p "$HOME/.config/i3"
+
+    # --- Config do i3 ---
+    # Verifica se o arquivo se chama 'config_git' (como você mencionou) ou apenas 'config'
+    if [ -f "$I3_SOURCE_DIR/config_git" ]; then
+        ln -sf "$I3_SOURCE_DIR/config_git" "$HOME/.config/i3/config"
+        echo "  -> Link criado: ~/.config/i3/config aponta para config_git"
+    elif [ -f "$I3_SOURCE_DIR/config" ]; then
+        ln -sf "$I3_SOURCE_DIR/config" "$HOME/.config/i3/config"
+        echo "  -> Link criado: ~/.config/i3/config aponta para config"
+    else
+        echo "  ERRO: Arquivo de config do i3 não encontrado dentro de doti3."
+    fi
+
+    # --- Config do i3blocks ---
+    if [ -f "$I3_SOURCE_DIR/i3blocks.conf_git" ]; then
+        ln -sf "$I3_SOURCE_DIR/i3blocks.conf_git" "$HOME/.config/i3/i3blocks.conf"
+        echo "  -> Link criado: ~/.config/i3/i3blocks.conf aponta para i3blocks.conf_git"
+    elif [ -f "$I3_SOURCE_DIR/i3blocks.conf" ]; then
+        ln -sf "$I3_SOURCE_DIR/i3blocks.conf" "$HOME/.config/i3/i3blocks.conf"
+        echo "  -> Link criado: ~/.config/i3/i3blocks.conf aponta para i3blocks.conf"
+    fi
+    
+    # Garante permissão de execução se tiver scripts dentro
+    chmod +x "$I3_SOURCE_DIR"/* 2>/dev/null || true
+
+else
+    echo "AVISO: Pasta 'doti3' não encontrada em $SCRIPT_DIR."
 fi
 
 #==================================================
-# Instalação do ROS 2 (Jazzy)
+# Instalação do ROS 2 (Jazzy) + Gazebo Harmonic
 #==================================================
-echo "==> Iniciando a instalação do ROS 2 Jazzy..."
+echo "==> Iniciando a instalação do ROS 2 Jazzy e Gazebo Harmonic..."
 
 echo "==> 1. Configurando o 'locale' (UTF-8)..."
-# O ROS 2 exige que o sistema suporte UTF-8
 sudo apt-get update
 sudo apt-get install -y locales
 sudo locale-gen en_US en_US.UTF-8
 sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-export LANG=en_US.UTF-8 # Para a sessão de script atual
+export LANG=en_US.UTF-8
 echo "Locale configurado."
 
-echo "==> 2. Adicionando repositórios (universe e ROS 2)..."
-# Instala pré-requisitos para gerenciar repositórios
-sudo apt-get install -y software-properties-common curl
-    
-# Adiciona o repositório 'universe' do Ubuntu (necessário para o ROS)
+echo "==> 2. Adicionando repositórios..."
+sudo apt-get install -y software-properties-common curl gnupg lsb-release
 sudo add-apt-repository -y universe
-    
-# Baixa a chave de segurança do ROS
+
+# Baixa a chave do ROS
 sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-    
-# Adiciona a fonte do ROS 2 à lista do apt
+
+# Adiciona a fonte do ROS 2
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-echo "Repositório ROS 2 adicionado."
-    
-echo "==> 3. Instalando pacotes do ROS 2..."
-sudo apt-get update # Atualiza após adicionar os novos repositórios
+
+echo "==> 3. Instalando ROS 2 Jazzy e Ferramentas de Simulação..."
+sudo apt-get update
 sudo apt-get install -y \
     ros-jazzy-desktop-full \
     ros-dev-tools \
-    ros-jazzy-ros-gz \
-    ros-jazzy-actuator-msgs \
-    ros-jazzy-mavlink \
-    ros-jazzy-pcl-ros
+    python3-colcon-common-extensions \
+    git \
+    python3-rosdep \
+    ros-jazzy-ros-gz  # <--- Instala Gazebo Harmonic e a ponte ROS automaticamente
 
-echo "==> Instalação do ROS 2 Jazzy concluída!"
+# Inicializa rosdep se necessário
+if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
+    sudo rosdep init
+fi
+rosdep update
+
+echo "==> Instalação do ROS 2 Jazzy + Gazebo Harmonic concluída!"
 echo "==> AVISO IMPORTANTE: Adicione o seguinte ao seu ~/.bashrc ou ~/.zshrc:"
 echo "==>   source /opt/ros/jazzy/setup.bash"
 echo "=================================================="
 
 #===================================================
-# Instalação do firmware PX4
+# Instalação do firmware PX4 (Para Gazebo Harmonic)
 #===================================================
 
-
-# --- Dependências Python (PX4 + Gitman) ---
-echo "==> Instalando Dependências Python..."
-pip3 install --user -U empy pyros-genmsg setuptools kconfiglib jinja2 jsonschema future packaging gitman
-
-# 1. Instalar Micro XRCE-DDS Agent (Obrigatório compilar)
+# 1. Instalar Micro XRCE-DDS Agent (Obrigatório para ROS 2 <-> PX4)
 echo "==> Instalando Micro XRCE-DDS Agent..."
 if [ ! -f "/usr/local/bin/MicroXRCEAgent" ]; then
+    sudo apt-get install -y build-essential cmake
     mkdir -p /tmp/xrce_build && cd /tmp/xrce_build
     git clone https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
     cd Micro-XRCE-DDS-Agent && mkdir build && cd build
@@ -693,28 +536,39 @@ if [ ! -f "/usr/local/bin/MicroXRCEAgent" ]; then
     sudo make install
     sudo ldconfig /usr/local/lib/
     rm -rf /tmp/xrce_build
-    echo "Agent instalado."
+    echo "Agent instalado com sucesso."
 else
     echo "Agent já estava instalado."
 fi
 
-echo "==> Ambiente base pronto!"
-
-cd $MAIN_DIR
-
-# 2. Clonar o PX4 (Isso baixa o código fonte e os submódulos)
+# 2. Clonar o PX4
 echo "==> Clonando PX4 Autopilot..."
-git clone https://github.com/PX4/PX4-Autopilot.git --recursive
+cd $MAIN_DIR
+if [ ! -d "PX4-Autopilot" ]; then
+    git clone https://github.com/PX4/PX4-Autopilot.git --recursive
+else
+    echo "Pasta PX4-Autopilot já existe. Atualizando..."
+    cd PX4-Autopilot
+    git pull
+    git submodule update --init --recursive
+    cd ..
+fi
 
-# 3. Rodar o script de setup oficial do PX4
-# Esse script mágico instala bibliotecas Python, GStreamer, Java, etc.
-echo "==> Instalando dependências do PX4..."
+# 3. Setup de dependências do PX4
+echo "==> Instalando dependências do PX4 via script oficial..."
 cd PX4-Autopilot
+# --no-nuttx: Pula compiladores de hardware físico (economiza tempo)
 bash ./Tools/setup/ubuntu.sh --no-nuttx
 
-echo "==> Pré-compilando PX4 SITL (x500)..."
-# Isso garante que a simulação funcione de primeira
+# Dependências Python extras para garantir compatibilidade
+pip3 install --user -U empy==3.3.4 pyros-genmsg setuptools kconfiglib jinja2 jsonschema future packaging gitman --break-system-packages || true
+
+# 4. Compilar para Gazebo Harmonic (gz-sim)
+echo "==> Compilando PX4 SITL para GAZEBO HARMONIC..."
+
 make px4_sitl_default
+
+echo "==> Setup do PX4 Concluído!"
 
 #===================================================
 # Instalação do ACADOS
@@ -749,25 +603,47 @@ fi
 echo "==> Configurando Variáveis de Ambiente Finais..."
 
 #===================================================
-# Configuração das Variáveis de ambiente
+# Configuração das Variáveis de ambiente e Sources
 #===================================================
 
-# Variáveis do Gazebo Harmonic para encontrar modelos do PX4
-if ! grep -q "GZ_SIM_RESOURCE_PATH" ~/.bashrc; then
+echo "==> Configurando variáveis de ambiente no .bashrc..."
+
+# 1. Adicionar Source do ROS 2 Jazzy
+if ! grep -q "source /opt/ros/jazzy/setup.bash" ~/.bashrc; then
     echo "" >> ~/.bashrc
-    echo "# Gazebo Harmonic + PX4 Resources" >> ~/.bashrc
-    echo "export GZ_SIM_RESOURCE_PATH=\$GZ_SIM_RESOURCE_PATH:$HOME/git/submodules/PX4-Autopilot/Tools/simulation/gz/models:$HOME/git/submodules/PX4-Autopilot/Tools/simulation/gz/worlds" >> ~/.bashrc
+    echo "# ROS 2 Jazzy" >> ~/.bashrc
+    echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 fi
 
-# Configurar Colcon para usar symlink por padrão (opcional, mas útil dev)
-if ! grep -q "COLCON_DEFAULTS_FILE" ~/.bashrc; then
-     mkdir -p ~/.colcon
-     echo '{"build": {"symlink-install": true}}' > ~/.colcon/defaults.yaml
+# 2. Configurações do MicroXRCEAgent (Facilita rodar o agente)
+if ! grep -q "MicroXRCEAgent" ~/.bashrc; then
+    echo "# Atalho para o Agente PX4 <-> ROS 2" >> ~/.bashrc
+    echo "alias run_agent='MicroXRCEAgent udp4 -p 8888'" >> ~/.bashrc
 fi
+
+# 3. Variáveis de Simulação (Gazebo Harmonic não precisa de tantas vars manuais quanto o Classic)
+# Mas é bom garantir que o shell saiba onde está o PX4
+if ! grep -q "PX4_SOURCE_DIR" ~/.bashrc; then
+    echo "export PX4_SOURCE_DIR=$HOME/git/submodules/PX4-Autopilot" >> ~/.bashrc
+    # Adiciona o diretório build ao path para acessar o binário px4 facilmente
+    echo "export PATH=\$PATH:$HOME/git/submodules/PX4-Autopilot/build/px4_sitl_default/bin" >> ~/.bashrc
+fi
+
+echo "NOTA: O Simulador agora é o Gazebo Harmonic (gz-sim)."
+echo "Para rodar a simulação: cd ~/git/submodules/PX4-Autopilot && make px4_sitl_default gz_x500"
 
 # Mensagem Final Estilosa
-toilet -f smblock "LASER UAV"
-toilet -f smblock "INSTALLED"
+# Verifica se o toilet está instalado para não dar erro no script
+if command -v toilet &> /dev/null; then
+    toilet -f smblock "LASER UAV"
+    toilet -f smblock "INSTALLED"
+else
+    echo "========================================="
+    echo "   LASER UAV - INSTALACAO CONCLUIDA      "
+    echo "========================================="
+fi
+
+echo "==> ATENÇÃO: Feche este terminal e abra um novo para as alterações surtirem efeito."
 
 #===================================================
 # Verificação final do lightdm
