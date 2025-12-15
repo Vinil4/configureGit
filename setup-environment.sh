@@ -172,3 +172,51 @@ echo "Wallpapers copiados (se encontrados na origem)."
 echo ""
 echo "=== Personalização Concluída! ==="
 echo "Dica: Adicione 'set clipboard=unnamedplus' manualmente ao seu arquivo doti3/dotvimrc."
+
+# ====================================================
+# 6. Copiar Scripts Auxiliares do i3 (Brilho, GPU, etc)
+# ====================================================
+echo "==> Instalando scripts auxiliares do i3..."
+
+# Garante que o diretório de destino existe
+mkdir -p ~/.config/i3
+
+# Verifica se os arquivos de origem existem para evitar erros
+if ls ~/git/configureGit/doti3/*.sh 1> /dev/null 2>&1; then
+    echo "Copiando scripts de ~/git/configureGit/doti3/ para ~/.config/i3/..."
+    cp ~/git/configureGit/doti3/*.sh ~/.config/i3/
+    
+    # Dá permissão de execução para todos eles
+    chmod +x ~/.config/i3/*.sh
+    echo "Sucesso: Scripts copiados e tornados executáveis."
+else
+    echo "AVISO: Nenhum script .sh encontrado em ~/git/configureGit/doti3/"
+fi
+
+# ====================================================
+# 7. Desativar ISO 14755 (Fix do Ctrl+Shift no URxvt)
+# ====================================================
+echo "==> Desativando entrada ISO 14755 (Símbolos Unicode)..."
+
+# Adiciona ao .Xresources apenas se ainda não estiver lá
+if [ -f "$HOME/.Xresources" ]; then
+    if ! grep -q "URxvt.iso14755" "$HOME/.Xresources"; then
+        cat >> "$HOME/.Xresources" << 'EOT'
+
+! === Correção: Desativar ISO 14755 ===
+! Isso impede que Ctrl+Shift bloqueie o terminal esperando entrada Unicode
+URxvt.iso14755: false
+URxvt.iso14755_52: false
+EOT
+        # Aplica a alteração imediatamente
+        xrdb -merge "$HOME/.Xresources"
+        echo "ISO 14755 desativado. Ctrl+Shift agora deve funcionar para atalhos."
+    else
+        echo "Configuração ISO 14755 já estava presente."
+    fi
+else
+    echo "Arquivo .Xresources não encontrado. Criando..."
+    echo "URxvt.iso14755: false" > "$HOME/.Xresources"
+    echo "URxvt.iso14755_52: false" >> "$HOME/.Xresources"
+    xrdb -merge "$HOME/.Xresources"
+fi

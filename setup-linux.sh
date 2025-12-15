@@ -27,7 +27,6 @@ sudo apt update
 
 # Instala tudo de uma vez
 sudo apt install -y \
-    # --- Ferramentas de Build e Base ---
     git \
     build-essential \
     cmake \
@@ -42,8 +41,6 @@ sudo apt install -y \
     golang \
     jq \
     libreadline-dev \
-    
-    # --- Interface Gráfica (i3 e utilitários) ---
     lightdm \
     i3-wm \
     i3lock \
@@ -53,15 +50,13 @@ sudo apt install -y \
     dmenu \
     rofi \
     feh \
-    compton \
+    picom \
     xorg \
     xinit \
     xbindkeys \
     xdotool \
     lxappearance \
     arandr \
-    
-    # --- Terminal e Produtividade (Substituindo seus submodules antigos) ---
     tmux \
     tmuxinator \
     ranger \
@@ -69,30 +64,26 @@ sudo apt install -y \
     silversearcher-ag \
     htop \
     zsh-syntax-highlighting \
-    
-    # --- Editores e Visualizadores ---
     vim-gtk3 \
     pdfpc \
-    vimiv \
-    
-    # --- Áudio e Brilho ---
     pulseaudio \
     alsa-utils \
     pasystray \
     light \
     brightnessctl \
-    
-    # --- Fontes ---
     fonts-font-awesome \
     fonts-terminus \
     xfonts-terminus \
-    
-    # --- Dependências de Robótica (PX4/ROS) ---
+    gettext \
+    intltool \
     libeigen3-dev \
     libboost-all-dev \
     libusb-1.0-0-dev \
     libceres-dev \
-    libglib2.0-dev
+    libglib2.0-dev \
+    libx11-dev \
+    libxkbfile-dev \
+    libqt5svg5
 
 echo "==> Instalação via APT concluída!"
 echo "==> Aplicando upgrade do sistema..."
@@ -112,34 +103,24 @@ echo "==> lightdm definido como padrão."
 cd "$MAIN_DIR"
 
 #==================================================
-# Athame (Vim mode for Readline)
+# Instalação do Vimiv (Image Viewer)
 #==================================================
-echo "==> Configurando Athame..."
-if [ ! -d "$MAIN_DIR/athame" ]; then
-    echo "Clonando Athame..."
-    git clone https://github.com/ardagnir/athame.git "$MAIN_DIR/athame"
+echo "==> Instalando Vimiv (Image Viewer)..."
+
+# 1. Instala dependências do sistema (Qt5 e bibliotecas gráficas)
+sudo apt install -y python3-pyqt5 python3-setuptools python3-pip
+
+# 2. Instala via PIP usando o nome correto ('vimiv', não 'vimiv-qt')
+# O 'break-system-packages' é necessário no Ubuntu 24.04
+sudo pip3 install vimiv --break-system-packages
+
+# 3. Garante que o atalho existe
+if ! command -v vimiv &> /dev/null; then
+    # Às vezes o pip instala em ~/.local/bin e o sudo não vê
+    echo "Aviso: O binário do vimiv pode não estar no PATH do sudo, mas deve funcionar para o usuário."
 fi
 
-echo "Entrando em $MAIN_DIR/athame..."
-cd "$MAIN_DIR/athame"
-git pull
-
-echo "Compilando Athame..."
-make
-sudo make install
-
-# O Athame geralmente precisa atualizar o arquivo .inputrc
-echo "Atualizando .inputrc para suportar Athame..."
-# Verifica se já existe configuração para não duplicar
-if ! grep -q "athame_init" ~/.inputrc 2>/dev/null; then
-    echo '$include /usr/local/lib/athame/athame_init.rl' >> ~/.inputrc
-    echo "set editing-mode vi" >> ~/.inputrc
-    echo "Configuração adicionada ao ~/.inputrc"
-else
-    echo "Athame já configurado no .inputrc."
-fi
-
-cd "$MAIN_DIR"
+echo "Vimiv instalado com sucesso."
 
 #==================================================
 # Pandoc Goodies
@@ -281,34 +262,6 @@ else
         echo "Erro na instalação do xkblayout-state!"
     fi
 fi
-cd "$MAIN_DIR"
-
-#==================================================
-# indicator-sound-switcher
-#==================================================
-echo "Verificando indicator-sound-switcher..."
-
-if [ ! -d "$MAIN_DIR/indicator-sound-switcher" ]; then
-    echo "Clonando indicator-sound-switcher (fork 'yktoo')..."
-    git clone https://github.com/yktoo/indicator-sound-switcher.git "$MAIN_DIR/indicator-sound-switcher"
-fi
-
-echo "Entrando em $MAIN_DIR/indicator-sound-switcher..."
-cd "$MAIN_DIR/indicator-sound-switcher"
-git pull
-echo "Limpando diretório 'build' antigo..."
-sudo rm -rf build
-
-echo "Instalando com pip (setup.py)..."
-sudo pip3 install . --break-system-packages
-hash -r
-
-if command -v indicator-sound-switcher >/dev/null 2>&1; then
-    echo "indicator-sound-switcher instalado com sucesso!"
-else
-    echo "Erro na instalação do indicator-sound-switcher!"
-fi
-
 cd "$MAIN_DIR"
 
 #==================================================
@@ -459,6 +412,19 @@ if [ -d "$I3_SOURCE_DIR" ]; then
     else
         echo "  ERRO: Arquivo de config do i3 não encontrado dentro de doti3."
     fi
+    
+    # --- INJEÇÃO DO PASYSTRAY (AQUI ESTÁ O QUE VOCÊ PEDIU) ---
+    # Isso garante que o pasystray inicie junto com o i3
+    if [ -f "$HOME/.config/i3/config" ]; then
+        if ! grep -q "pasystray" "$HOME/.config/i3/config"; then
+            echo "Adicionando pasystray ao config do i3..."
+            echo "" >> "$HOME/.config/i3/config"
+            echo "# Volume Control (Adicionado pelo setup.sh)" >> "$HOME/.config/i3/config"
+            echo "exec --no-startup-id pasystray" >> "$HOME/.config/i3/config"
+        else
+            echo "  -> Pasystray já configurado no i3."
+        fi
+    fi
 
     # --- Config do i3blocks ---
     if [ -f "$I3_SOURCE_DIR/i3blocks.conf_git" ]; then
@@ -608,6 +574,13 @@ echo "==> Configurando Variáveis de Ambiente Finais..."
 
 echo "==> Configurando variáveis de ambiente no .bashrc..."
 
+# --- GARANTE O VIM CUSTOMIZADO NO TERMINAL ---
+if ! grep -q "export EDITOR=vim" ~/.bashrc; then
+    echo "Definindo Vim como editor padrão (para Ctrl-x Ctrl-e funcionar)..."
+    echo "export EDITOR=vim" >> ~/.bashrc
+    echo "export VISUAL=vim" >> ~/.bashrc
+fi
+
 # 1. Adicionar Source do ROS 2 Jazzy
 if ! grep -q "source /opt/ros/jazzy/setup.bash" ~/.bashrc; then
     echo "" >> ~/.bashrc
@@ -621,8 +594,8 @@ if ! grep -q "MicroXRCEAgent" ~/.bashrc; then
     echo "alias run_agent='MicroXRCEAgent udp4 -p 8888'" >> ~/.bashrc
 fi
 
-# 3. Variáveis de Simulação (Gazebo Harmonic não precisa de tantas vars manuais quanto o Classic)
-# Mas é bom garantir que o shell saiba onde está o PX4
+# 3. Variáveis de Simulação (Gazebo Harmonic)
+# garantir que o shell saiba onde está o PX4
 if ! grep -q "PX4_SOURCE_DIR" ~/.bashrc; then
     echo "export PX4_SOURCE_DIR=$HOME/git/submodules/PX4-Autopilot" >> ~/.bashrc
     # Adiciona o diretório build ao path para acessar o binário px4 facilmente

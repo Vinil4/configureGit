@@ -231,10 +231,10 @@ bindsym $mod+F8 exec --no-startup-id amixer -D pulse sset Master 100%
 
 # EPIGEN_DEL_BLOCK_AFZAL {
 # # default key bindings for monitor brightness on external keyboard
-bindsym $mod+F1 exec --no-startup-id ~/.i3/brightness.sh set 5%- -n 1 # decrease screen brightness
-bindsym $mod+F2 exec --no-startup-id ~/.i3/brightness.sh set +5%# decrease screen brightness
-bindsym $mod+F3 exec --no-startup-id ~/.i3/brightness.sh set 2 # increase screen brightness
-bindsym $mod+F4 exec --no-startup-id ~/.i3/brightness.sh set 100% # increase screen brightness
+bindsym $mod+F1 exec --no-startup-id ~/.config/i3/brightness.sh down
+bindsym $mod+F2 exec --no-startup-id ~/.config/i3/brightness.sh up
+bindsym $mod+F3 exec --no-startup-id ~/.config/i3/brightness.sh min
+bindsym $mod+F4 exec --no-startup-id ~/.config/i3/brightness.sh max
 # EPIGEN_DEL_BLOCK_AFZAL }
 
 # printscreen using shutter
@@ -368,7 +368,7 @@ client.urgent           $inactive_background      $inactive_background  $inactiv
 # finds out, if available)
 bar {
 
-  status_command i3blocks -c ~/.i3/i3blocks.conf
+  status_command i3blocks -c ~/.config/i3/i3blocks.conf
 
   i3bar_command i3bar -t
 
@@ -1573,10 +1573,10 @@ exec --no-startup-id nm-applet
 exec ~/.monitor.sh
 
 # enables transparency
-exec --no-startup-id compton -f -D 3 --backend glx --paint-on-overlay --vsync opengl-swc # EPIGEN_DEL_LINE_GPD EPIGEN_DEL_LINE_TOSHIBA EPIGEN_DEL_LINE_PETR EPIGEN_DEL_LINE_PAVEL EPIGEN_DEL_LINE_HONZA EPIGEN_DEL_LINE_DANIEL
+exec --no-startup-id picom -f -D 3 --backend glx --vsync # EPIGEN_DEL_LINE_GPD EPIGEN_DEL_LINE_TOSHIBA EPIGEN_DEL_LINE_PETR EPIGEN_DEL_LINE_PAVEL EPIGEN_DEL_LINE_HONZA EPIGEN_DEL_LINE_DANIEL
 
 # sound-card control
-exec_always --no-startup-id indicator-sound-switcher
+exec_always --no-startup-id pkill pasystray; sleep 0.2; pasystray
 
 # exec_always  --no-startup-id "sleep 1; sudo ~/.i3/thinkpad_t490_nvidia/nvidiaEnable.sh" # EPIGEN_ADD_LINE_TP490NV
 
@@ -1822,3 +1822,6 @@ mode "resize_mode" {
 # #}
 
 # #}
+
+# Volume Control (Adicionado pelo setup.sh)
+exec --no-startup-id pasystray
