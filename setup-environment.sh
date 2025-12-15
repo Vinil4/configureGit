@@ -174,23 +174,33 @@ echo "=== Personalização Concluída! ==="
 echo "Dica: Adicione 'set clipboard=unnamedplus' manualmente ao seu arquivo doti3/dotvimrc."
 
 # ====================================================
-# 6. Copiar Scripts Auxiliares do i3 (Brilho, GPU, etc)
+# 6. Copiar Scripts Auxiliares do i3 (Brilho, GPU, Shutdown)
 # ====================================================
-echo "==> Instalando scripts auxiliares do i3..."
+echo "==> Instalando scripts auxiliares e Rofi..."
 
-# Garante que o diretório de destino existe
 mkdir -p ~/.config/i3
 
-# Verifica se os arquivos de origem existem para evitar erros
-if ls ~/git/configureGit/doti3/*.sh 1> /dev/null 2>&1; then
-    echo "Copiando scripts de ~/git/configureGit/doti3/ para ~/.config/i3/..."
-    cp ~/git/configureGit/doti3/*.sh ~/.config/i3/
+if [ -d ~/git/configureGit/doti3 ]; then
+    echo "Copiando todos os arquivos de doti3..."
     
-    # Dá permissão de execução para todos eles
-    chmod +x ~/.config/i3/*.sh
-    echo "Sucesso: Scripts copiados e tornados executáveis."
+    # Copia TUDO (sobrescreve se já existir)
+    cp -r ~/git/configureGit/doti3/* ~/.config/i3/
+    
+    # Ajusta os nomes dos arquivos de configuração
+    # O i3 espera 'config', mas no git está 'config_git'
+    if [ -f ~/.config/i3/config_git ]; then
+        mv ~/.config/i3/config_git ~/.config/i3/config
+    fi
+    
+    if [ -f ~/.config/i3/i3blocks.conf_git ]; then
+        mv ~/.config/i3/i3blocks.conf_git ~/.config/i3/i3blocks.conf
+    fi
+
+    # Dá permissão de execução para todos os scripts e binários
+    chmod +x ~/.config/i3/*
+    echo "Scripts copiados e permissões ajustadas."
 else
-    echo "AVISO: Nenhum script .sh encontrado em ~/git/configureGit/doti3/"
+    echo "AVISO: Scripts não encontrados em ~/git/configureGit/doti3/"
 fi
 
 # ====================================================

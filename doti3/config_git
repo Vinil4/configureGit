@@ -203,17 +203,17 @@ bindsym $mod+Shift+0 move container to workspace $workspace10
 bindsym $mod+Shift+c reload
 
 # changing color schemes
-bindsym $mod2+c exec "~/.i3/detacher.sh 'cd $GIT_PATH/linux-setup/scripts; ./set_colorscheme.sh'"
+bindsym $mod2+c exec "~/.config/i3/detacher.sh 'cd $GIT_PATH/linux-setup/scripts; ./set_colorscheme.sh'"
 
 # changing active gpu
-bindsym $mod2+x exec "~/.i3/detacher.sh 'cd $GIT_PATH/linux-setup/scripts; ./set_gpu.sh'"
+bindsym $mod2+x exec "~/.config/i3/detacher.sh 'cd $GIT_PATH/linux-setup/scripts; ./set_gpu.sh'"
 
 # reload i3 settings from the ~/.i3/config file
 bindsym $mod+Shift+r restart
 
 # launch system manager menu
 # EPIGEN_DEL_BLOCK_HONZA {
-bindsym $mod2+f exec "~/.i3/detacher.sh 'cd $GIT_PATH/linux-setup/scripts; ./system_menu.sh'"
+bindsym $mod2+f exec "~/.config/i3/detacher.sh 'cd $GIT_PATH/linux-setup/scripts; ./system_menu.sh'"
 # EPIGEN_DEL_BLOCK_HONZA }
 
 # rofi launcher
@@ -245,10 +245,10 @@ bindsym $mod+t exec --no-startup-id ~/.scripts/toggle_touchpad.sh
 
 # shutdown/logout menu
 # EPIGEN_DEL_BLOCK_VOJTA {
-bindsym $mod+Shift+x exec ~/.i3/shutdown_menu -p rofi
+bindsym $mod+Shift+x exec ~/.config/i3/shutdown_menu -p rofi
 # EPIGEN_DEL_BLOCK_VOJTA }
 
-bindsym $mod2+l exec --no-startup-id ~/.i3/layout_manager.sh
+bindsym $mod2+l exec --no-startup-id ~/.config/i3/layout_manager.sh
 
 # bind i3 modes
 bindsym $mod+r mode "resize_mode"
@@ -1724,7 +1724,7 @@ mode "mouse_mode" {
   bindsym r exec --no-startup-id xdotool mousedown 1; mode "longpress_mode"
 
   # Banish the mouse pointer to the corner of the current window - removes the distracting cursor or summons it closer for specific tasks
-  bindsym b exec --no-startup-id ~/.i3/banishMouse.sh
+  bindsym b exec --no-startup-id ~/.config/i3/banishMouse.sh
 }
 
 # #}
