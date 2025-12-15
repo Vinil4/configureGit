@@ -3,6 +3,7 @@ automatiza a configuracao do git no pc.
 
 **configurar somente git**
 ```bash
+sudo apt install -y git &&
 mkdir -p ~/git &&
 cd ~/git &&
 git clone https://github.com/Vinil4/configureGit.git &&
