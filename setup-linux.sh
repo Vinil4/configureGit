@@ -541,9 +541,8 @@ echo "==> Setup do PX4 Concluído!"
 #===================================================
 
 echo "==> Instalando ACADOS (Solver NMPC)..."
-# instalar em ~/git/dependencies para ficar organizado
-mkdir -p ~/git/dependencies
-cd ~/git/dependencies
+
+cd $MAIN_DIR
 
 if [ ! -d "acados" ]; then
     git clone https://github.com/acados/acados.git
@@ -564,6 +563,8 @@ if [ ! -d "acados" ]; then
 else
     echo "   -> ACADOS já parece estar instalado."
 fi
+
+cd $MAIN_DIR
 
 # --- Finalização ---
 echo "==> Configurando Variáveis de Ambiente Finais..."
