@@ -33,7 +33,7 @@ markup=none
 # # [git_check]
 # # label= 
 # # interval=600
-# # command=$HOME/.i3/detacher.sh 1 'cd ~/.scripts/; ./git_check.sh'
+# # command=$HOME/.config/i3/detacher.sh 1 'cd ~/.scripts/; ./git_check.sh'
 # # color=#FF0000
 
 # EPIGEN_ADD_BLOCK_VOJTA EPIGEN_ADD_BLOCK_TOMAS }
@@ -275,7 +275,7 @@ separator=true
 # [cpu_temperature]
 # interval=5
 # label=CPU: 
-# command=~/.i3/show_temp.sh 0  
+# command=~/.config/i3/show_temp.sh 0  
 # # EPIGEN_ADD_BLOCK_SUPERNUC {
 # # command=echo `sensors | grep 'Core 0' | cut -c17-23`
 # # EPIGEN_ADD_BLOCK_SUPERNUC }
@@ -364,7 +364,7 @@ separator=true
 # [keyboard]
 # label= 
 # interval=2
-# command=~/.i3/show_keyboard_layout.sh
+# command=~/.config/i3/show_keyboard_layout.sh
 # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 # color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 # separator=true 
@@ -401,14 +401,14 @@ separator=true
 
 # [cpu_frequency]
 # interval=3
-# command=~/.i3/show_cpu_freq.sh
+# command=~/.config/i3/show_cpu_freq.sh
 # separator=false
 # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 # color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 
 # [cpu_temperature]
 # interval=5
-# command=~/.i3/show_temp.sh 0  
+# command=~/.config/i3/show_temp.sh 0  
 # # EPIGEN_ADD_BLOCK_SUPERNUC {
 # # command=echo `sensors | grep 'Core 0' | cut -c17-23`
 # # EPIGEN_ADD_BLOCK_SUPERNUC }
@@ -420,7 +420,7 @@ separator=true
 # # [gpu]
 # # label=GPU: 
 # # interval=3
-# # command=$HOME/.i3/show_gpu_load.sh
+# # command=$HOME/.config/i3/show_gpu_load.sh
 # # min_width=70
 # # separator=false
 # # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
@@ -428,7 +428,7 @@ separator=true
 
 # # [gpu_free_memory]
 # # interval=3
-# # command=$HOME/.i3/show_gpu_mem.sh
+# # command=$HOME/.config/i3/show_gpu_mem.sh
 # # # min_width=80
 # # separator=false
 # # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
@@ -436,7 +436,7 @@ separator=true
 
 # # [gpu_temperature]
 # # interval=3
-# # command=$HOME/.i3/show_gpu_temp.sh
+# # command=$HOME/.config/i3/show_gpu_temp.sh
 # # # min_width=80
 # # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 # # color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
@@ -509,7 +509,7 @@ separator=true
 # instance=Master
 # interval=1
 # signal=5
-# command=~/.i3/show_volume.sh
+# command=~/.config/i3/show_volume.sh
 # separator=true 
 # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 # color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
@@ -526,7 +526,7 @@ separator=true
 # [keyboard]
 # label= 
 # interval=2
-# command=~/.i3/show_keyboard_layout.sh
+# command=~/.config/i3/show_keyboard_layout.sh
 # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 # color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 # separator=true 
@@ -571,7 +571,7 @@ separator=true
 # [cputemp]
 # interval=2
 # label=CPU 
-# command=~/.i3/show_temp.sh 0
+# command=~/.config/i3/show_temp.sh 0
 # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 # color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 # EPIGEN_ADD_BLOCK_DAN EPIGEN_ADD_BLOCK_DANIEL }
@@ -581,7 +581,7 @@ separator=true
 # # interval=2
 # # label=CPU 
 # # # EPIGEN_ADD_BLOCK_DELL {
-# # # command=~/.i3/show_temp.sh 7
+# # # command=~/.config/i3/show_temp.sh 7
 # # # EPIGEN_ADD_BLOCK_DELL }
 # # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 # # color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
@@ -611,7 +611,7 @@ separator=true
 # [cpu_temperature]
 # interval=5
 # label=CPU: 
-# command=~/.i3/show_temp.sh 0  
+# command=~/.config/i3/show_temp.sh 0  
 # # EPIGEN_ADD_BLOCK_SUPERNUC {
 # # command=echo `sensors | grep 'Core 0' | cut -c17-23`
 # # EPIGEN_ADD_BLOCK_SUPERNUC }
@@ -628,7 +628,7 @@ separator=true
 
 # [cpu_frequency]
 # interval=3
-# command=~/.i3/show_cpu_freq.sh
+# command=~/.config/i3/show_cpu_freq.sh
 # separator=true
 # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 # color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
@@ -665,7 +665,7 @@ separator=true
 # instance=Master
 # interval=1
 # signal=5
-# command=~/.i3/show_volume.sh
+# command=~/.config/i3/show_volume.sh
 # # EPIGEN_DEL_BLOCK_SUPERNUC {
 # separator=false 
 # # EPIGEN_DEL_BLOCK_SUPERNUC }
@@ -838,7 +838,7 @@ color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 [keyboard]
 label= 
 interval=2
-command=~/.i3/show_keyboard_layout.sh
+command=~/.config/i3/show_keyboard_layout.sh
 # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 # EPIGEN_DEL_BLOCK_MATEJ EPIGEN_DEL_BLOCK_ONDRA }
@@ -847,7 +847,7 @@ color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 # [gpu]
 # label=GPU 
 # interval=10
-# command=$HOME/.i3/show_active_gpu.sh
+# command=$HOME/.config/i3/show_active_gpu.sh
 # # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 # color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 # EPIGEN_ADD_BLOCK_GPU }
@@ -874,7 +874,7 @@ color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
 
 [clickme]
 full_text=
-command=~/.i3/shutdown_menu -p rofi
+command=~/.config/i3/shutdown_menu -p rofi
 separator=true
 # color=#000000 # EPIGEN_ADD_LINE_COLORSCHEME_LIGHT
 color=#ffffff # EPIGEN_DEL_LINE_COLORSCHEME_LIGHT
