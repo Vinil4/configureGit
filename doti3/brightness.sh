@@ -1,39 +1,30 @@
 #!/bin/bash
-# author: Matous Vrba
 
-INCREMENT=10
-MINIMAL=5
+# --- Configuração Universal ---
+# A opção '-c backlight' diz para o programa ignorar LEDs de teclado/mouse
+# e focar apenas no monitor. Funciona para Intel, AMD e Nvidia.
+OPTS="-c backlight"
 
-# set the minimal backlight value
-light -N $MINIMAL
+# Pega o brilho atual (sem %)
+# O '-m' gera saída em formato de máquina (nome,classe,brilho,porcentagem,...)
+OLD_VAL=$(brightnessctl $OPTS -m | cut -d, -f4 | tr -d %)
 
-# get original raw brightness value
-orig_brightness=$(light -G -r)
+case $1 in
+    "+")
+        brightnessctl $OPTS set +5% -q
+        ;;
+    "-")
+             brightnessctl $OPTS set 5%- -q
+        ;;
+    *)
+        # Para definir valor fixo direto (ex: ./script 100)
+        brightnessctl $OPTS set $1% -q
+        ;;
+esac
 
-if [ $# -eq 0 ]; then
-  echo Current brightness is: $(light -G)
-  exit 0
-elif [ $1 = "+" ]; then
-  light -A $INCREMENT
-elif [ $1 = "-" ]; then
-  light -U $INCREMENT
-else
-  light -S $1
-fi
+# Pega o novo valor para a notificação
+NEW_VAL=$(brightnessctl $OPTS -m | cut -d, -f4 | tr -d %)
 
-# raw minimal brightness value
-min_brightness=$(light -r -P)
-
-# get new raw brightness after increment/decrement
-new_brightness=$(light -r -G)
-
-if [ $new_brightness -le $min_brightness ]; then
-
-  light -S $MINIMAL
-  notify-send -u low -t 500 "Brightness on MIN" -h string:x-canonical-private-synchronous:anything -i display-brightness-low-symbolic
-
-elif [ $new_brightness -eq $orig_brightness ]; then
-
-  notify-send -u low -t 500 "Brightness on MAX" -h string:x-canonical-private-synchronous:anything -i display-brightness-low-symbolic
-
-fi
+# Envia a notificação visual
+# O ID 991050 impede que as notificações se empilhem (uma substitui a outra)
+dunstify -a "brightness" -u low -r 991050 -h int:value:"$NEW_VAL" "Brilho: ${NEW_VAL}%" -t 1500

@@ -137,3 +137,26 @@ set clipboard=unnamedplus
 
 " Mostrar erros
 let g:ycm_enable_diagnostic_highlighting = 0
+
+" Configuração do TAB
+" --- Configuração de Tabs (4 espaços) ---
+set tabstop=4       " Define que 1 Tab visualmente ocupa 4 espaços
+set shiftwidth=4    " Define que a indentação automática usa 4 espaços
+set expandtab       " Converte o clique do Tab em espaços reais
+set softtabstop=4   " Faz o Backspace apagar 4 espaços de uma vez (como se fosse um Tab)
+
+" --- Extras (Qualidade de Vida) ---
+set number          " Mostra o número das linhas na esquerda
+syntax on           " Ativa o realce de cores (syntax highlighting)
+
+" Configuração do TAB
+" --- Configuração de Tabs (4 espaços) ---
+set tabstop=4       " Define que 1 Tab visualmente ocupa 4 espaços
+set shiftwidth=4    " Define que a indentação automática usa 4 espaços
+set expandtab       " Converte o clique do Tab em espaços reais
+set softtabstop=4   " Faz o Backspace apagar 4 espaços de uma vez (como se fosse um Tab)
+
+" --- Extras (Qualidade de Vida) ---
+set number          " Mostra o número das linhas na esquerda
+syntax on           " Ativa o realce de cores (syntax highlighting)
+

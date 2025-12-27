@@ -198,6 +198,7 @@ if [ -d ~/git/configureGit/doti3 ]; then
 
     # Dá permissão de execução para todos os scripts e binários
     chmod +x ~/.config/i3/*
+    sudo chmod +s $(which brightnessctl)
     echo "Scripts copiados e permissões ajustadas."
 else
     echo "AVISO: Scripts não encontrados em ~/git/configureGit/doti3/"
