@@ -74,6 +74,7 @@ sudo apt install -y \
     fonts-font-awesome \
     fonts-terminus \
     xfonts-terminus \
+    dunst \
     gettext \
     intltool \
     libeigen3-dev \
