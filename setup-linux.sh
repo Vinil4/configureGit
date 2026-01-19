@@ -414,7 +414,7 @@ if [ -d "$I3_SOURCE_DIR" ]; then
         echo "  ERRO: Arquivo de config do i3 não encontrado dentro de doti3."
     fi
     
-    # --- INJEÇÃO DO PASYSTRAY (AQUI ESTÁ O QUE VOCÊ PEDIU) ---
+    # --- INJEÇÃO DO PASYSTRAY ---
     # Isso garante que o pasystray inicie junto com o i3
     if [ -f "$HOME/.config/i3/config" ]; then
         if ! grep -q "pasystray" "$HOME/.config/i3/config"; then
@@ -488,56 +488,6 @@ echo "==>   source /opt/ros/jazzy/setup.bash"
 echo "=================================================="
 
 #===================================================
-# Instalação do firmware PX4 (Para Gazebo Harmonic)
-#===================================================
-
-# 1. Instalar Micro XRCE-DDS Agent (Obrigatório para ROS 2 <-> PX4)
-echo "==> Instalando Micro XRCE-DDS Agent..."
-if [ ! -f "/usr/local/bin/MicroXRCEAgent" ]; then
-    sudo apt-get install -y build-essential cmake
-    mkdir -p /tmp/xrce_build && cd /tmp/xrce_build
-    git clone https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
-    cd Micro-XRCE-DDS-Agent && mkdir build && cd build
-    cmake ..
-    make
-    sudo make install
-    sudo ldconfig /usr/local/lib/
-    rm -rf /tmp/xrce_build
-    echo "Agent instalado com sucesso."
-else
-    echo "Agent já estava instalado."
-fi
-
-# 2. Clonar o PX4
-echo "==> Clonando PX4 Autopilot..."
-cd $MAIN_DIR
-if [ ! -d "PX4-Autopilot" ]; then
-    git clone https://github.com/PX4/PX4-Autopilot.git --recursive
-else
-    echo "Pasta PX4-Autopilot já existe. Atualizando..."
-    cd PX4-Autopilot
-    git pull
-    git submodule update --init --recursive
-    cd ..
-fi
-
-# 3. Setup de dependências do PX4
-echo "==> Instalando dependências do PX4 via script oficial..."
-cd PX4-Autopilot
-# --no-nuttx: Pula compiladores de hardware físico (economiza tempo)
-bash ./Tools/setup/ubuntu.sh --no-nuttx
-
-# Dependências Python extras para garantir compatibilidade
-pip3 install --user -U empy==3.3.4 pyros-genmsg setuptools kconfiglib jinja2 jsonschema future packaging gitman --break-system-packages || true
-
-# 4. Compilar para Gazebo Harmonic (gz-sim)
-echo "==> Compilando PX4 SITL para GAZEBO HARMONIC..."
-
-make px4_sitl_default
-
-echo "==> Setup do PX4 Concluído!"
-
-#===================================================
 # Instalação do ACADOS
 #===================================================
 
@@ -590,13 +540,7 @@ if ! grep -q "source /opt/ros/jazzy/setup.bash" ~/.bashrc; then
     echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 fi
 
-# 2. Configurações do MicroXRCEAgent (Facilita rodar o agente)
-if ! grep -q "MicroXRCEAgent" ~/.bashrc; then
-    echo "# Atalho para o Agente PX4 <-> ROS 2" >> ~/.bashrc
-    echo "alias run_agent='MicroXRCEAgent udp4 -p 8888'" >> ~/.bashrc
-fi
-
-# 3. Variáveis de Simulação (Gazebo Harmonic)
+# 2. Variáveis de Simulação (Gazebo Harmonic)
 # garantir que o shell saiba onde está o PX4
 if ! grep -q "PX4_SOURCE_DIR" ~/.bashrc; then
     echo "export PX4_SOURCE_DIR=$HOME/git/submodules/PX4-Autopilot" >> ~/.bashrc
