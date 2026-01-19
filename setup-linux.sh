@@ -487,34 +487,6 @@ echo "==> AVISO IMPORTANTE: Adicione o seguinte ao seu ~/.bashrc ou ~/.zshrc:"
 echo "==>   source /opt/ros/jazzy/setup.bash"
 echo "=================================================="
 
-#===================================================
-# Instalação do ACADOS
-#===================================================
-
-echo "==> Instalando ACADOS (Solver NMPC)..."
-
-cd $MAIN_DIR
-
-if [ ! -d "acados" ]; then
-    git clone https://github.com/acados/acados.git
-    cd acados
-    git submodule update --recursive --init
-    mkdir -p build
-    cd build
-    # Flag QPOASES ativada
-    cmake -DACADOS_WITH_QPOASES=ON ..
-    make install -j4
-    
-    # Exportar variáveis para o .bashrc
-    echo "" >> ~/.bashrc
-    echo "# ACADOS Configuration" >> ~/.bashrc
-    echo "export ACADOS_SOURCE_DIR=\"$HOME/git/dependencies/acados\"" >> ~/.bashrc
-    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\"$HOME/git/dependencies/acados/lib\"" >> ~/.bashrc
-    echo "   -> ACADOS instalado e variáveis adicionadas ao .bashrc"
-else
-    echo "   -> ACADOS já parece estar instalado."
-fi
-
 cd $MAIN_DIR
 
 # --- Finalização ---
