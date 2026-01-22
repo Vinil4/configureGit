@@ -1,30 +1,40 @@
 #!/bin/bash
 
 # --- Configuração Universal ---
-# A opção '-c backlight' diz para o programa ignorar LEDs de teclado/mouse
-# e focar apenas no monitor. Funciona para Intel, AMD e Nvidia.
 OPTS="-c backlight"
 
-# Pega o brilho atual (sem %)
-# O '-m' gera saída em formato de máquina (nome,classe,brilho,porcentagem,...)
-OLD_VAL=$(brightnessctl $OPTS -m | cut -d, -f4 | tr -d %)
-
+# --- Lógica de Comandos ---
 case $1 in
-    "+")
+    "up")
+        # Aumenta 5%
         brightnessctl $OPTS set +5% -q
         ;;
-    "-")
-             brightnessctl $OPTS set 5%- -q
+    "down")
+        # Diminui 5%, mas não deixa baixar de 1% (pra não apagar a tela totalmente)
+        # O brightnessctl geralmente protege isso, mas é bom garantir.
+        brightnessctl $OPTS set 5%- -q
+        ;;
+    "min")
+        # Define para o mínimo (1% é mais seguro que 0%)
+        brightnessctl $OPTS set 1% -q
+        ;;
+    "max")
+        # Define para o máximo
+        brightnessctl $OPTS set 100% -q
         ;;
     *)
-        # Para definir valor fixo direto (ex: ./script 100)
-        brightnessctl $OPTS set $1% -q
+        # Caso você queira passar um número direto (ex: ./script 50)
+        # Verifica se o argumento é um número
+        if [[ "$1" =~ ^[0-9]+$ ]]; then
+            brightnessctl $OPTS set $1% -q
+        fi
         ;;
 esac
 
-# Pega o novo valor para a notificação
+# --- Notificação ---
+# Pega o novo valor ATUALIZADO
 NEW_VAL=$(brightnessctl $OPTS -m | cut -d, -f4 | tr -d %)
 
-# Envia a notificação visual
-# O ID 991050 impede que as notificações se empilhem (uma substitui a outra)
+# Envia a notificação
 dunstify -a "brightness" -u low -r 991050 -h int:value:"$NEW_VAL" "Brilho: ${NEW_VAL}%" -t 1500
+
