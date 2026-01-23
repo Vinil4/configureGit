@@ -18,7 +18,7 @@ Testado somente no ubuntu 24.02.
 ```bash
 mkdir -p ~/git &&
 cd ~/git &&
-git clone https://github.com/Vinil4/configureGit.git &&
+git clone git@github.com:Vinil4/configureGit.git &&
 cd ~/git/configureGit &&
 chmod +x setup-linux.sh &&
 chmod +x setup-environment.sh &&
