@@ -444,9 +444,9 @@ else
 fi
 
 #==================================================
-# Instalação do ROS 2 (Jazzy) + Gazebo Harmonic
+# Instalação do ROS 2 (Jazzy) 
 #==================================================
-echo "==> Iniciando a instalação do ROS 2 Jazzy e Gazebo Harmonic..."
+echo "==> Iniciando a instalação do ROS 2 Jazzy..."
 
 echo "==> 1. Configurando o 'locale' (UTF-8)..."
 sudo apt-get update
@@ -474,7 +474,6 @@ sudo apt-get install -y \
     python3-colcon-common-extensions \
     git \
     python3-rosdep \
-    ros-jazzy-ros-gz  # <--- Instala Gazebo Harmonic e a ponte ROS automaticamente
 
 # Inicializa rosdep se necessário
 if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
@@ -511,17 +510,6 @@ if ! grep -q "source /opt/ros/jazzy/setup.bash" ~/.bashrc; then
     echo "# ROS 2 Jazzy" >> ~/.bashrc
     echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 fi
-
-# 2. Variáveis de Simulação (Gazebo Harmonic)
-# garantir que o shell saiba onde está o PX4
-if ! grep -q "PX4_SOURCE_DIR" ~/.bashrc; then
-    echo "export PX4_SOURCE_DIR=$HOME/git/submodules/PX4-Autopilot" >> ~/.bashrc
-    # Adiciona o diretório build ao path para acessar o binário px4 facilmente
-    echo "export PATH=\$PATH:$HOME/git/submodules/PX4-Autopilot/build/px4_sitl_default/bin" >> ~/.bashrc
-fi
-
-echo "NOTA: O Simulador agora é o Gazebo Harmonic (gz-sim)."
-echo "Para rodar a simulação: cd ~/git/submodules/PX4-Autopilot && make px4_sitl_default gz_x500"
 
 # Mensagem Final Estilosa
 # Verifica se o toilet está instalado para não dar erro no script
