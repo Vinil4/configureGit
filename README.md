@@ -13,7 +13,7 @@ chmod +x config.sh &&
 ```
 
 **configurar todo sistema**\
-Instala as dependencias, configura toda a interface com o i3 e instalao ROS 2 Jazzy.\
+Instala as dependencias, configura toda a interface com o i3, VIM e tmux.\
 Testado somente no ubuntu 24.02.
 ```bash
 mkdir -p ~/git &&
