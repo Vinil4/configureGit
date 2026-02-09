@@ -443,49 +443,6 @@ else
     echo "AVISO: Pasta 'doti3' não encontrada em $SCRIPT_DIR."
 fi
 
-#==================================================
-# Instalação do ROS 2 (Jazzy) 
-#==================================================
-echo "==> Iniciando a instalação do ROS 2 Jazzy..."
-
-echo "==> 1. Configurando o 'locale' (UTF-8)..."
-sudo apt-get update
-sudo apt-get install -y locales
-sudo locale-gen en_US en_US.UTF-8
-sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-export LANG=en_US.UTF-8
-echo "Locale configurado."
-
-echo "==> 2. Adicionando repositórios..."
-sudo apt-get install -y software-properties-common curl gnupg lsb-release
-sudo add-apt-repository -y universe
-
-# Baixa a chave do ROS
-sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-
-# Adiciona a fonte do ROS 2
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-
-echo "==> 3. Instalando ROS 2 Jazzy e Ferramentas de Simulação..."
-sudo apt-get update
-sudo apt-get install -y \
-    ros-jazzy-desktop-full \
-    ros-dev-tools \
-    python3-colcon-common-extensions \
-    git \
-    python3-rosdep \
-
-# Inicializa rosdep se necessário
-if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
-    sudo rosdep init
-fi
-rosdep update
-
-echo "==> Instalação do ROS 2 Jazzy + Gazebo Harmonic concluída!"
-echo "==> AVISO IMPORTANTE: Adicione o seguinte ao seu ~/.bashrc ou ~/.zshrc:"
-echo "==>   source /opt/ros/jazzy/setup.bash"
-echo "=================================================="
-
 cd $MAIN_DIR
 
 # --- Finalização ---
@@ -504,13 +461,6 @@ if ! grep -q "export EDITOR=vim" ~/.bashrc; then
     echo "export VISUAL=vim" >> ~/.bashrc
 fi
 
-# 1. Adicionar Source do ROS 2 Jazzy
-if ! grep -q "source /opt/ros/jazzy/setup.bash" ~/.bashrc; then
-    echo "" >> ~/.bashrc
-    echo "# ROS 2 Jazzy" >> ~/.bashrc
-    echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
-fi
-
 # Mensagem Final Estilosa
 # Verifica se o toilet está instalado para não dar erro no script
 if command -v toilet &> /dev/null; then
@@ -518,7 +468,7 @@ if command -v toilet &> /dev/null; then
     toilet -f smblock "INSTALLED"
 else
     echo "========================================="
-    echo "   LASER UAV - INSTALACAO CONCLUIDA      "
+    echo "   INSTALACAO CONCLUIDA      "
     echo "========================================="
 fi
 
