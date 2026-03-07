@@ -102,16 +102,21 @@ fi
 # ====================================================
 # 4. Configuração do URxvt (.Xresources)
 # ====================================================
-echo "==> Configurando .Xresources (Tema Solarized)..."
+echo "==> Configurando .Xresources e Scripts Perl para Clipboard..."
 
-cat > "$HOME/.Xresources" << 'EOT'
+# Instala o script de clipboard manualmente se não existir
+mkdir -p ~/.urxvt/ext/
+if [ ! -f ~/.urxvt/ext/clipboard ]; then
+    curl -o ~/.urxvt/ext/clipboard https://raw.githubusercontent.com/muennich/urxvt-perls/master/deprecated/clipboard
+    chmod +x ~/.urxvt/ext/clipboard
+fi
+
+cat > "$HOME/.Xresources" << EOT
 ! URxvt Configurações - Tema Solarized Dark
-
-! === Fonte ===
 URxvt.font:             xft:DejaVu Sans Mono:size=12
 URxvt.boldFont:         xft:DejaVu Sans Mono:bold:size=12
 
-! === Cores (Solarized Dark) ===
+! Cores Solarized
 URxvt.background:       #002b36
 URxvt.foreground:       #839496
 URxvt.cursorColor:      #93a1a1
@@ -132,24 +137,24 @@ URxvt.color14:          #93a1a1
 URxvt.color7:           #eee8d5
 URxvt.color15:          #fdf6e3
 
-! === Scroll e Buffer ===
+! Scroll e Buffer
 URxvt.scrollBar: false
 URxvt.saveLines: 8192
 URxvt.internalBorder: 5
-URxvt.letterSpace: -1
 
-! === Clipboard (Requer perl extensions) ===
-URxvt.perl-ext-common: default,matcher,selection-to-clipboard
-URxvt.keysym.C-S-c: eval:selection_to_clipboard
-URxvt.keysym.C-S-v: eval:paste_clipboard
-URxvt.url-launcher: xdg-open
-URxvt.matcher.button: 1
+! Clipboard e Fixes
+URxvt.perl-lib: $HOME/.urxvt/ext/
+URxvt.perl-ext-common: default,matcher,clipboard
+URxvt.keysym.Control-Shift-C: perl:clipboard:copy
+URxvt.keysym.Control-Shift-V: perl:clipboard:paste
+URxvt.iso14755: false
+URxvt.iso14755_52: false
 EOT
 
-# Recarrega se possível
+# Recarrega as configurações
 if command -v xrdb > /dev/null; then
-    xrdb -merge ~/.Xresources
-    echo ".Xresources recarregado."
+    xrdb -load ~/.Xresources
+    echo ".Xresources carregado com sucesso."
 fi
 
 # ====================================================
@@ -205,29 +210,30 @@ else
 fi
 
 # ====================================================
-# 7. Desativar ISO 14755 (Fix do Ctrl+Shift no URxvt)
+# 7. CONFIGURAÇÃO AUTOMÁTICA DO RANGER (rifle.conf)
 # ====================================================
-echo "==> Desativando entrada ISO 14755 (Símbolos Unicode)..."
+echo "==> Configurando rifle.conf do Ranger para abrir texto no Vim..."
 
-# Adiciona ao .Xresources apenas se ainda não estiver lá
-if [ -f "$HOME/.Xresources" ]; then
-    if ! grep -q "URxvt.iso14755" "$HOME/.Xresources"; then
-        cat >> "$HOME/.Xresources" << 'EOT'
+# Garante que a pasta de config existe
+mkdir -p "$HOME/.config/ranger"
 
-! === Correção: Desativar ISO 14755 ===
-! Isso impede que Ctrl+Shift bloqueie o terminal esperando entrada Unicode
-URxvt.iso14755: false
-URxvt.iso14755_52: false
-EOT
-        # Aplica a alteração imediatamente
-        xrdb -merge "$HOME/.Xresources"
-        echo "ISO 14755 desativado. Ctrl+Shift agora deve funcionar para atalhos."
+# Cria ou sobrescreve o rifle.conf com a nossa regra prioritária no topo
+# 'cat' para criar o topo e depois anexar o conteúdo original se ele existir
+{
+    echo "# --- Regra automática inserida pelo setup ---"
+    echo "mime ^text,  label editor = vim -- \"\$@\""
+    echo "ext yml|yaml|json|conf|ini|sh|py|js|md, label editor = vim -- \"\$@\""
+    echo ""
+    
+    # Se o arquivo já existir, anexa o conteúdo dele abaixo da nossa regra
+    if [ -f "$HOME/.config/ranger/rifle.conf" ]; then
+        cat "$HOME/.config/ranger/rifle.conf"
     else
-        echo "Configuração ISO 14755 já estava presente."
+        # Se não existir, gera o padrão do ranger
+        ranger --copy-config=rifle > /dev/null 2>&1
+        cat "$HOME/.config/ranger/rifle.conf"
     fi
-else
-    echo "Arquivo .Xresources não encontrado. Criando..."
-    echo "URxvt.iso14755: false" > "$HOME/.Xresources"
-    echo "URxvt.iso14755_52: false" >> "$HOME/.Xresources"
-    xrdb -merge "$HOME/.Xresources"
-fi
+} > "$HOME/.config/ranger/rifle.conf.tmp"
+
+mv "$HOME/.config/ranger/rifle.conf.tmp" "$HOME/.config/ranger/rifle.conf"
+echo "Regra do Ranger aplicada."
