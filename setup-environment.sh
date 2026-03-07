@@ -117,25 +117,42 @@ URxvt.font:             xft:DejaVu Sans Mono:size=12
 URxvt.boldFont:         xft:DejaVu Sans Mono:bold:size=12
 
 ! Cores Solarized
-URxvt.background:       #002b36
-URxvt.foreground:       #839496
-URxvt.cursorColor:      #93a1a1
-URxvt.color0:           #073642
-URxvt.color8:           #002b36
-URxvt.color1:           #dc322f
-URxvt.color9:           #cb4b16
-URxvt.color2:           #859900
-URxvt.color10:          #586e75
-URxvt.color3:           #b58900
-URxvt.color11:          #657b83
-URxvt.color4:           #268bd2
-URxvt.color12:          #839496
-URxvt.color5:           #d33682
-URxvt.color13:          #6c71c4
-URxvt.color6:           #2aa198
-URxvt.color14:          #93a1a1
-URxvt.color7:           #eee8d5
-URxvt.color15:          #fdf6e3
+! special
+*.foreground:   #93a1a1
+*.background:   #002b36
+*.cursorColor:  #93a1a1
+
+! black
+*.color0:       #002b36
+*.color8:       #657b83
+
+! red
+*.color1:       #dc322f
+*.color9:       #dc322f
+
+! green
+*.color2:       #859900
+*.color10:      #859900
+
+! yellow
+*.color3:       #b58900
+*.color11:      #b58900
+
+! blue
+*.color4:       #268bd2
+*.color12:      #268bd2
+
+! magenta
+*.color5:       #6c71c4
+*.color13:      #6c71c4
+
+! cyan
+*.color6:       #2aa198
+*.color14:      #2aa198
+
+! white
+*.color7:       #93a1a1
+*.color15:      #fdf6e3
 
 ! Scroll e Buffer
 URxvt.scrollBar: false
