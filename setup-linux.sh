@@ -474,7 +474,7 @@ fi
 # Mensagem Final Estilosa
 # Verifica se o toilet está instalado para não dar erro no script
 if command -v toilet &> /dev/null; then
-    toilet -f smblock "LASER UAV"
+    toilet -f smblock "SYSTEM"
     toilet -f smblock "INSTALLED"
 else
     echo "========================================="
